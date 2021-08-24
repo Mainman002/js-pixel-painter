@@ -1,0 +1,24 @@
+{
+  "name": "core-defender",
+  "version": "1.0.0",
+  "description": "Place defenders on grid to stop enemies from attack your power core!",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "repository": "https://github.com/Mainman002/core-defender/",
+  "keywords": [
+    "core",
+    "defend",
+    "defenders",
+    "tower",
+    "defence",
+    "defense"
+  ],
+  "author": "Johnathan Mueller, Franks laboratory",
+  "license": "Unknown",
+  "devDependencies": {
+    "electron": "^13.1.7"
+  },
+  "dependencies": {}
+}
