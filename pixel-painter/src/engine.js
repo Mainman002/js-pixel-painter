@@ -57,34 +57,26 @@ let HEIGHT = 600;
 let CANVAS_WIDTH = 900;
 let CANVAS_HEIGHT = 600;
 
-const cheats = {
-    godMode: false,
-    slowMotion: false,
-    insaneMode: false,
-    infinitePower: false,
-    highHP: false,
-    speedShoot: false,
-    powerShoot: false,
+const settings = {
     fpsVisible:true,
+    showAreas:false,
     graphicSmoothing: false,
     preserveAspect: false,
-    gameOver: false,
-    instaWin: false,
 }
 
 // Graphic sharpness
-ctx.mozImageSmoothingEnabled = cheats.graphicSmoothing;
-ctx.msImageSmoothingEnabled = cheats.graphicSmoothing;
-ctx.imageSmoothingEnabled = cheats.graphicSmoothing;
-pixCtx.mozImageSmoothingEnabled = cheats.graphicSmoothing;
-pixCtx.msImageSmoothingEnabled = cheats.graphicSmoothing;
-pixCtx.imageSmoothingEnabled = cheats.graphicSmoothing;
-gridCtx.mozImageSmoothingEnabled = cheats.graphicSmoothing;
-gridCtx.msImageSmoothingEnabled = cheats.graphicSmoothing;
-gridCtx.imageSmoothingEnabled = cheats.graphicSmoothing;
-uiCtx.mozImageSmoothingEnabled = cheats.graphicSmoothing;
-uiCtx.msImageSmoothingEnabled = cheats.graphicSmoothing;
-uiCtx.imageSmoothingEnabled = cheats.graphicSmoothing;
+ctx.mozImageSmoothingEnabled = settings.graphicSmoothing;
+ctx.msImageSmoothingEnabled = settings.graphicSmoothing;
+ctx.imageSmoothingEnabled = settings.graphicSmoothing;
+pixCtx.mozImageSmoothingEnabled = settings.graphicSmoothing;
+pixCtx.msImageSmoothingEnabled = settings.graphicSmoothing;
+pixCtx.imageSmoothingEnabled = settings.graphicSmoothing;
+gridCtx.mozImageSmoothingEnabled = settings.graphicSmoothing;
+gridCtx.msImageSmoothingEnabled = settings.graphicSmoothing;
+gridCtx.imageSmoothingEnabled = settings.graphicSmoothing;
+uiCtx.mozImageSmoothingEnabled = settings.graphicSmoothing;
+uiCtx.msImageSmoothingEnabled = settings.graphicSmoothing;
+uiCtx.imageSmoothingEnabled = settings.graphicSmoothing;
 
 const customFont = 'Orbitron'; // Verdana
 ctx.font = `70px ${customFont}`;
@@ -95,7 +87,7 @@ globalThis.fps = 0;
 
 // Variables
 const areaItems = [];
-const areaSize = 128;
+const areaSize = 64;
 const areaGap = 3;
 const cellSize = 8;
 const cellGap = 3;
@@ -127,7 +119,8 @@ const btnMouse = {
     clicked: false,
 }
 
-let activeColor = `rgba(255, 255, 255, 1)`;
+let activeColor = `rgb(255, 255, 255)`;
+let activeOpacity = 1;
 let clickTimer = 1;
 let canClick = false;
 let showGrid = false;
@@ -219,7 +212,7 @@ canvas.addEventListener('mouseleave', function(e){
 
 // Mouse Down Event
 canvas.addEventListener('mousedown', function(e){
-    // activeColor = `rgba(${Math.random() * 25 + 50}, ${Math.random() * 25 + 50}, ${Math.random() * 25 + 50, 1})`;
+    // activeColor = `rgb(${Matrandom() * 25 + 50}, ${Math.random() * 25 + 50}, ${Math.random() * 25 + 50, 1})`;
     mouse.clicked = true;
 });
 
@@ -240,7 +233,7 @@ canvas.addEventListener('wheel', function(e){
         mouse.height = 0.01;
     }
 
-    console.log(mouse.height);
+    // console.log(mouse.height);
 });
 
 
@@ -281,7 +274,8 @@ class Cell {
         this.width = cellSize;
         this.height = cellSize;
         this.sprite = {'w':256, 'h':256};
-        this.color = `rgba(0,0,0,0)`;
+        this.color = `rgb(0,0,0)`;
+        this.opacity = 0;
         // this.image = floorImage;
         // this.image.src = floorImage.src;
         this.maxFrame = 6;
@@ -290,13 +284,19 @@ class Cell {
 
     // Reset opacity to 0
     clear(){
-        this.color = `rgba(0,0,0,0)`;
+        this.opacity = 0;
+        this.color = `rgb(0,0,0)`;
         pixCtx.clearRect(0,0,pixCanvas.width,pixCanvas.height);
     }
 
     // Cell draw function
     draw(){
-        pixCtx.globalAlpha = this.color.a;
+
+        // console.log(`Pix: ${this.color}`);
+
+        if (this.opacity === 0) pixCtx.clearRect(this.x, this.y, this.height, this.width);
+
+        pixCtx.globalAlpha = this.opacity;
         pixCtx.fillStyle = this.color;
         pixCtx.fillRect(this.x, this.y, this.width, this.height);
         // ctx.drawImage(this.image, this.frame*this.sprite.w, 0, this.sprite.w, this.sprite.h, this.x, this.y, this.width, this.height);
@@ -315,6 +315,7 @@ class Cell {
 
             // Draw pixels
             if (mouse.clicked) {
+                this.opacity = activeOpacity;
                 this.color = activeColor;
             }
         }
@@ -336,9 +337,12 @@ function createGrid(){
 function handleGameGrid(){
     // pixCtx.clearRect(0, 0, pixCanvas.width, pixCanvas.height);
     [...gameGrid].forEach(ob => ob.draw());
+
     // for (let i = 0; i < gameGrid.length; i++){
-    //     gameGrid[i].draw();
+    //     if (gameGrid[i].color === activeColor) return;
+    //     else gameGrid[i].draw();
     // }
+
 }
 
 
@@ -351,51 +355,43 @@ class Area {
         this.height = areaSize;
         this.name = name;
         this.pixels = [];
-        // this.sprite = {'w':256, 'h':256};
-        // this.color = `rgba(0,0,0,0)`;
-        // this.image = floorImage;
-        // this.image.src = floorImage.src;
-        // this.maxFrame = 6;
-        // this.frame = Math.floor(Math.random() * this.maxFrame);
+    }
+
+    // Check area for pixels
+    query(arr){
+        for (let i = 0; i < gameGrid.length; i++){
+            if (gameGrid[i] && (gameGrid[i].x >= this.x && gameGrid[i].x <= this.x+this.width && gameGrid[i].y >= this.y && gameGrid[i].y <= this.y+this.height) ){
+                this.pixels.push(gameGrid[i]);
+            }
+        }
+        return this.pixels;
     }
 
     // Cell draw function
     update(){
         // pixCtx.clearRect(this.x, this.y, this.height, this.width);
-        // ctx.globalAlpha = 1;
-        // ctx.strokeStyle = 'Black';
-        // ctx.lineWidth = 1;
-        // ctx.strokeRect(this.x, this.y, this.width, this.height);
+
+        if (settings.showAreas) {
+            ctx.globalAlpha = 1;
+            ctx.strokeStyle = 'Black';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(this.x, this.y, this.width, this.height);
+        }
 
         if (mouse && collision(this,mouse)){
-            // areaItems.length = 0;
+            const someP = [];
+            this.pixels = this.query(someP);
 
-            // Show grid in this area
-            // if (showGrid){
-            //     gridCtx.clearRect(this.x, this.y, this.width, this.height);
-            //     for (let x = 0; x < cellSize*2; x++){
-            //         for (let y = 0; y < cellSize*2; y++){
-            //             drawLine(this.x+cellSize*x, this.y+cellSize*y, cellSize, cellSize);
-            //         }
-            //     } 
-            // }
-
-            // Update pixels in this area
-            for (let i = 0; i < gameGrid.length; i++){
-                if (gameGrid[i] && (gameGrid[i].x >= this.x && gameGrid[i].x <= this.x+this.width && gameGrid[i].y >= this.y && gameGrid[i].y <= this.y+this.height) ){
-                    // areaItems.push(gameGrid[i]);
-                    // uiCtx.clearRect(0,0,canvas.width, canvas.height);
-                    pixCtx.clearRect(gameGrid[i].x, gameGrid[i].y, gameGrid[i].height, gameGrid[i].width);
-                    gameGrid[i].draw();
-                }
+            for (let i in this.pixels){
+                this.pixels[i].draw();
             }
 
-            // for (let i = 0; i < areaItems.length; i++){
-            //     if (areaItems[i] && (areaItems[i].x >= this.x && areaItems[i].x <= this.x+this.width && areaItems[i].y >= this.y && areaItems[i].y <= this.y+this.height) ){
-            //         pixCtx.clearRect(areaItems[i].x, areaItems[i].y, areaItems[i].height, areaItems[i].width);
-            //         areaItems[i].draw();
-            //     }
+            this.pixels.length = 0;
+
+            // for (let i = 0; i <  this.pixels.length; i++) {
+            //     this.pixels.length = 0;
             // }
+
         }
     }
 }
@@ -422,38 +418,20 @@ function handleAreaGrid(){
 }
 
 
-// class ButtonSelected {
-//     constructor(x, y, width, height, color){
-//         this.x = x;
-//         this.y = y;
-//         this.width = width;
-//         this.height = height;
-//         this.color = 'Teal';
-//     }
-
-//     // Buttons draw function
-//     draw(){
-//         ctx.globalAlpha = 1;
-//         ctx.strokeStyle = 'Teal';
-//         ctx.lineWidth = 2;
-//         ctx.strokeRect(this.x, this.y, this.width, this.height);
-//     }
-// }
-
-
 class Button {
-    constructor(x, y, width, height, color){
+    constructor(x, y, width, height, color, opacity){
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
-        this.color = `rgba(${color.r}, ${color.g}, ${color.b}, ${color.a})`;
+        this.color = `rgb(${color.r}, ${color.g}, ${color.b})`;
+        this.opacity = opacity;
         // this.activeSelection = false;
     }
 
     // Buttons draw function
     draw(){
-        ctx.globalAlpha = this.color.a;
+        ctx.globalAlpha = this.opacity;
         ctx.fillStyle = this.color;
         ctx.fillRect(this.x, this.y, this.width, this.height);
 
@@ -462,7 +440,7 @@ class Button {
         ctx.lineWidth = 1;
         ctx.strokeRect(this.x, this.y, this.width, this.height);
 
-        if (activeColor === this.color) {
+        if (activeColor === this.color && activeOpacity === this.opacity) {
             uiCtx.globalAlpha = 1;
             uiCtx.lineWidth = 3;
             uiCtx.strokeStyle = 'Teal';
@@ -475,6 +453,7 @@ class Button {
         // Select color buttons
         if (btnMouse.x && btnMouse.y && collision(this,btnMouse)){
             if (mouse.clicked) {
+                activeOpacity = this.opacity;
                 activeColor = this.color;
                 uiCtx.clearRect(0,0,canvas.width,canvas.height);
                 // [...buttons].forEach(btn => btn.activeSelection = false);
@@ -489,39 +468,39 @@ function createBtns(){
     const btnOffset = 40;
 
     // White
-    buttons.push(new Button(canvas.width-42,             20, 32, 32, {r:0, g:0, b:0, a:1} ));
-    buttons.push(new Button(canvas.width-42-btnOffset*1, 20, 32, 32, {r:127, g:127, b:127, a:1} ));
-    buttons.push(new Button(canvas.width-42-btnOffset*2, 20, 32, 32, {r:255, g:255, b:255, a:1} ));
+    buttons.push(new Button(canvas.width-42,             20, 32, 32, {r:0, g:0, b:0}, 1 ));
+    buttons.push(new Button(canvas.width-42-btnOffset*1, 20, 32, 32, {r:127, g:127, b:127}, 1 ));
+    buttons.push(new Button(canvas.width-42-btnOffset*2, 20, 32, 32, {r:255, g:255, b:255}, 1 ));
 
     // Red
-    buttons.push(new Button(canvas.width-42,             20+btnOffset*1, 32, 32, {r:55, g:0, b:0, a:1} ));
-    buttons.push(new Button(canvas.width-42-btnOffset*1, 20+btnOffset*1, 32, 32, {r:127, g:0, b:0, a:1} ));
-    buttons.push(new Button(canvas.width-42-btnOffset*2, 20+btnOffset*1, 32, 32, {r:255, g:0, b:0, a:1} ));
+    buttons.push(new Button(canvas.width-42,             20+btnOffset*1, 32, 32, {r:55, g:0, b:0}, 1 ));
+    buttons.push(new Button(canvas.width-42-btnOffset*1, 20+btnOffset*1, 32, 32, {r:127, g:0, b:0}, 1 ));
+    buttons.push(new Button(canvas.width-42-btnOffset*2, 20+btnOffset*1, 32, 32, {r:255, g:0, b:0}, 1 ));
 
     // Yellow
-    buttons.push(new Button(canvas.width-42,             20+btnOffset*2, 32, 32, {r:55, g:55, b:0, a:1} ));
-    buttons.push(new Button(canvas.width-42-btnOffset*1, 20+btnOffset*2, 32, 32, {r:127, g:127, b:0, a:1} ));
-    buttons.push(new Button(canvas.width-42-btnOffset*2, 20+btnOffset*2, 32, 32, {r:255, g:255, b:0, a:1} ));
+    buttons.push(new Button(canvas.width-42,             20+btnOffset*2, 32, 32, {r:55, g:55, b:0}, 1 ));
+    buttons.push(new Button(canvas.width-42-btnOffset*1, 20+btnOffset*2, 32, 32, {r:127, g:127, b:0}, 1 ));
+    buttons.push(new Button(canvas.width-42-btnOffset*2, 20+btnOffset*2, 32, 32, {r:255, g:255, b:0}, 1 ));
     
     // Green
-    buttons.push(new Button(canvas.width-42,             20+btnOffset*3, 32, 32, {r:0, g:55, b:0, a:1} ));
-    buttons.push(new Button(canvas.width-42-btnOffset*1, 20+btnOffset*3, 32, 32, {r:0, g:127, b:0, a:1} ));
-    buttons.push(new Button(canvas.width-42-btnOffset*2, 20+btnOffset*3, 32, 32, {r:0, g:255, b:0, a:1} ));
+    buttons.push(new Button(canvas.width-42,             20+btnOffset*3, 32, 32, {r:0, g:55, b:0}, 1 ));
+    buttons.push(new Button(canvas.width-42-btnOffset*1, 20+btnOffset*3, 32, 32, {r:0, g:127, b:0}, 1 ));
+    buttons.push(new Button(canvas.width-42-btnOffset*2, 20+btnOffset*3, 32, 32, {r:0, g:255, b:0}, 1 ));
 
     // Teal
-    buttons.push(new Button(canvas.width-42,             20+btnOffset*4, 32, 32, {r:0, g:55, b:55, a:1} ));
-    buttons.push(new Button(canvas.width-42-btnOffset*1, 20+btnOffset*4, 32, 32, {r:0, g:127, b:127, a:1} ));
-    buttons.push(new Button(canvas.width-42-btnOffset*2, 20+btnOffset*4, 32, 32, {r:0, g:255, b:255, a:1} ));
+    buttons.push(new Button(canvas.width-42,             20+btnOffset*4, 32, 32, {r:0, g:55, b:55}, 1 ));
+    buttons.push(new Button(canvas.width-42-btnOffset*1, 20+btnOffset*4, 32, 32, {r:0, g:127, b:127}, 1 ));
+    buttons.push(new Button(canvas.width-42-btnOffset*2, 20+btnOffset*4, 32, 32, {r:0, g:255, b:255}, 1 ));
 
     // Blue
-    buttons.push(new Button(canvas.width-42,             20+btnOffset*5, 32, 32, {r:0, g:0, b:55, a:1} ));
-    buttons.push(new Button(canvas.width-42-btnOffset*1, 20+btnOffset*5, 32, 32, {r:0, g:0, b:127, a:1} ));
-    buttons.push(new Button(canvas.width-42-btnOffset*2, 20+btnOffset*5, 32, 32, {r:0, g:0, b:255, a:1} ));
+    buttons.push(new Button(canvas.width-42,             20+btnOffset*5, 32, 32, {r:0, g:0, b:55}, 1 ));
+    buttons.push(new Button(canvas.width-42-btnOffset*1, 20+btnOffset*5, 32, 32, {r:0, g:0, b:127}, 1 ));
+    buttons.push(new Button(canvas.width-42-btnOffset*2, 20+btnOffset*5, 32, 32, {r:0, g:0, b:255}, 1 ));
 
     // Eraser
-    buttons.push(new Button(canvas.width-42,             21+btnOffset*6, 32, 32, {r:0, g:0, b:0, a:0} ));
-    buttons.push(new Button(canvas.width-42-btnOffset*1, 20+btnOffset*6, 32, 32, {r:0, g:0, b:0, a:0} ));
-    buttons.push(new Button(canvas.width-42-btnOffset*2, 20+btnOffset*6, 32, 32, {r:0, g:0, b:0, a:0} ));
+    buttons.push(new Button(canvas.width-42,             21+btnOffset*6, 32, 32, {r:0, g:0, b:0}, 0 ));
+    buttons.push(new Button(canvas.width-42-btnOffset*1, 20+btnOffset*6, 32, 32, {r:0, g:0, b:0}, 0 ));
+    buttons.push(new Button(canvas.width-42-btnOffset*2, 20+btnOffset*6, 32, 32, {r:0, g:0, b:0}, 0 ));
 }
 
 
@@ -626,11 +605,11 @@ function update(){
     drawLabel(`Brush Size:${Math.floor(mouse.width)}`, 'right', 'Teal', canvas.width-42-30*3, 0+labelOffset*1, 18);
     drawLabel(`Change Brush Size`, 'right', 'Teal',                     canvas.width-42-30*3, 0+labelOffset*2, 18);
     drawLabel(`[ ] or Mouse Wheel`, 'right', 'Teal',                    canvas.width-42-30*3, 0+labelOffset*3, 18);
-    drawLabel(`Toggle Grid: g`, 'right', 'Teal',                        canvas.width-42-30*3, 0+labelOffset*4, 18);
-    drawLabel(`Clear Canvas: e`, 'right', 'Teal',                       canvas.width-42-30*3, 0+labelOffset*5, 18);
+    drawLabel(`Toggle Grid: G`, 'right', 'Teal',                        canvas.width-42-30*3, 0+labelOffset*4, 18);
+    drawLabel(`Clear Canvas: E`, 'right', 'Teal',                       canvas.width-42-30*3, 0+labelOffset*5, 18);
 
-    // Show fps if cheats fpsVisible is true
-    if (cheats?.fpsVisible){
+    // Show fps if settings fpsVisible is true
+    if (settings?.fpsVisible){
         // FPS Background
         ctx.globalAlpha = 0.9;
         ctx.fillStyle = 'Black';
