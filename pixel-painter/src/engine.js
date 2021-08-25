@@ -28,13 +28,7 @@ uiCanvas.height = window.innerHeight;
 uiCanvas.style.top = `${canvasPosition.top}px`;
 uiCanvas.style.left = `${canvasPosition.left}px`;
 
-// const notifyCanvas = document.getElementById("notifyCanvas");
-// const notifyCtx = notifyCanvas.getContext('2d');
-// notifyCanvas.width = window.innerWidth;
-// notifyCanvas.height = window.innerHeight;
-// notifyCanvas.style.top = `${canvasPosition.top}px`;
-// notifyCanvas.style.left = `${canvasPosition.left}px`;
-
+// Draw border rect around canvas
 drawBorder(0, 128, 512, 364);
 
 const mirror = document.getElementById('mirror');
@@ -58,8 +52,9 @@ let CANVAS_WIDTH = 900;
 let CANVAS_HEIGHT = 600;
 
 const settings = {
-    fpsVisible:true,
-    showAreas:false,
+    fpsVisible: true,
+    showAreas: false,
+    showGrid: false,
     graphicSmoothing: false,
     preserveAspect: false,
 }
@@ -78,6 +73,7 @@ uiCtx.mozImageSmoothingEnabled = settings.graphicSmoothing;
 uiCtx.msImageSmoothingEnabled = settings.graphicSmoothing;
 uiCtx.imageSmoothingEnabled = settings.graphicSmoothing;
 
+// Global Font Settings
 const customFont = 'Orbitron'; // Verdana
 ctx.font = `70px ${customFont}`;
 
@@ -96,11 +92,6 @@ const areaGrid = [];
 const gameGrid = [];
 const pixels = [];
 const buttons = [];
-
-// const controlBar = {
-//     width: canvas.width,
-//     height:cellSize,
-// }
 
 // Mouse Variables
 const mouse = {
@@ -121,8 +112,6 @@ const btnMouse = {
 
 let activeColor = `rgb(255, 255, 255)`;
 let activeOpacity = 1;
-let clickTimer = 1;
-let canClick = false;
 let showGrid = false;
 
 
@@ -240,7 +229,8 @@ canvas.addEventListener('wheel', function(e){
 window.addEventListener('keydown', (e) => {
     switch (e.key) {
         case "g":
-            showGrid = !showGrid;
+            // showGrid = !showGrid;
+            settings.showGrid = !settings.showGrid;
             toggleGrid();
             break;
         case "Enter":
@@ -267,19 +257,15 @@ window.addEventListener('keydown', (e) => {
 
 
 // grid Cell class
-class Cell {
+class Pixel {
     constructor(x, y){
         this.x = x;
         this.y = y;
         this.width = cellSize;
         this.height = cellSize;
-        this.sprite = {'w':256, 'h':256};
         this.color = `rgb(0,0,0)`;
         this.opacity = 0;
-        // this.image = floorImage;
-        // this.image.src = floorImage.src;
-        this.maxFrame = 6;
-        this.frame = Math.floor(Math.random() * this.maxFrame);
+        // this.hovered = false;
     }
 
     // Reset opacity to 0
@@ -289,30 +275,24 @@ class Cell {
         pixCtx.clearRect(0,0,pixCanvas.width,pixCanvas.height);
     }
 
+    // Pixel hover function
+    // hover() {
+    //     uiCtx.clearRect(this.x, this.y, this.height, this.width);
+    //     uiCtx.globalAlpha = 1;
+    //     uiCtx.lineWidth = 1;
+    //     uiCtx.strokeStyle = 'Teal';
+    //     uiCtx.strokeRect(this.x, this.y, this.width, this.height);
+    // }
+
     // Cell draw function
     draw(){
-
-        // console.log(`Pix: ${this.color}`);
-
         if (this.opacity === 0) pixCtx.clearRect(this.x, this.y, this.height, this.width);
 
         pixCtx.globalAlpha = this.opacity;
         pixCtx.fillStyle = this.color;
         pixCtx.fillRect(this.x, this.y, this.width, this.height);
-        // ctx.drawImage(this.image, this.frame*this.sprite.w, 0, this.sprite.w, this.sprite.h, this.x, this.y, this.width, this.height);
-
-        // uiCtx.clearRect(0,0,canvas.width,canvas.height);
-        // uiCtx.globalAlpha = 1;
-        // uiCtx.lineWidth = 1;
-        // uiCtx.strokeStyle = 'Teal';
-        // uiCtx.strokeRect(this.x, this.y, this.width, this.height);
 
         if (mouse && collision(this,mouse)){
-            // uiCtx.globalAlpha = 1;
-            // uiCtx.lineWidth = 1;
-            // uiCtx.strokeStyle = 'Teal';
-            // uiCtx.strokeRect(this.x, this.y, this.width, this.height);
-
             // Draw pixels
             if (mouse.clicked) {
                 this.opacity = activeOpacity;
@@ -327,7 +307,7 @@ class Cell {
 function createGrid(){
     for (let y = cellSize; y < pixCanvas.height; y += cellSize){
         for (let x = 0; x < pixCanvas.width; x += cellSize){
-            gameGrid.push(new Cell(x, y));
+            gameGrid.push(new Pixel(x, y));
         }
     }
 }
@@ -337,12 +317,6 @@ function createGrid(){
 function handleGameGrid(){
     // pixCtx.clearRect(0, 0, pixCanvas.width, pixCanvas.height);
     [...gameGrid].forEach(ob => ob.draw());
-
-    // for (let i = 0; i < gameGrid.length; i++){
-    //     if (gameGrid[i].color === activeColor) return;
-    //     else gameGrid[i].draw();
-    // }
-
 }
 
 
@@ -383,15 +357,17 @@ class Area {
             this.pixels = this.query(someP);
 
             for (let i in this.pixels){
+                // this.pixels[i].hovered = false;
+                // this.pixels[i].draw();
+
+                // if (mouse && activeOpacity > 0 && collision(mouse, this.pixels[i])) {
+                //     pixCtx.clearRect(this.pixels[i].x, this.pixels[i].y, this.pixels[i].width, this.pixels[i].height);
+                //     uiCtx.strokeRect(this.pixels[i].x, this.pixels[i].y, this.pixels[i].width, this.pixels[i].height);
+                // } 
+
                 this.pixels[i].draw();
             }
-
             this.pixels.length = 0;
-
-            // for (let i = 0; i <  this.pixels.length; i++) {
-            //     this.pixels.length = 0;
-            // }
-
         }
     }
 }
@@ -409,12 +385,7 @@ function createArea(){
 
 // Cycle through area array
 function handleAreaGrid(){
-    // pixCtx.clearRect(mouse.x, mouse.y, mouse.height, mouse.width);
-    // pixCtx.clearRect(0, 0, pixCanvas.width, pixCanvas.height);
     [...areaGrid].forEach(ob => ob.update());
-    // for (let i = 0; i < gameGrid.length; i++){
-    //     gameGrid[i].draw();
-    // }
 }
 
 
@@ -426,7 +397,6 @@ class Button {
         this.height = height;
         this.color = `rgb(${color.r}, ${color.g}, ${color.b})`;
         this.opacity = opacity;
-        // this.activeSelection = false;
     }
 
     // Buttons draw function
@@ -456,8 +426,6 @@ class Button {
                 activeOpacity = this.opacity;
                 activeColor = this.color;
                 uiCtx.clearRect(0,0,canvas.width,canvas.height);
-                // [...buttons].forEach(btn => btn.activeSelection = false);
-                // this.activeSelection = true;
             }
         }
     }
@@ -504,9 +472,6 @@ function createBtns(){
 }
 
 
-// const btnSelector = new ButtonSelected(64,64,32,32,'Teal');
-
-
 // Draw buttons
 function handleBtns() {
     [...buttons].forEach(ob => ob.draw());
@@ -541,7 +506,7 @@ function drawBorder(x, y, w, h){
 
 function toggleGrid() {
     gridCtx.clearRect(0, 0, gridCanvas.width, gridCanvas.height);
-    if (showGrid) {
+    if (settings.showGrid) {
 
         // draw boxes
         for (let x = 0; x < cellSize*2*4; x++){
@@ -549,14 +514,6 @@ function toggleGrid() {
                 drawRect(0+cellSize*x, 128+cellSize*y, cellSize, cellSize);
             }
         }
-
-        // Draw Lines
-        // for (let x = 0; x < cellSize*2; x++){
-        //     drawLine(this.x+cellSize*x, this.y, this.x+cellSize*x, this.y+this.height);
-        // }
-        // for (let y = 0; y < cellSize*2; y++){
-        //     drawLine(this.x, this.y+cellSize*y, this.x+this.width, this.y+cellSize*y);
-        // }
     }
 }
 
@@ -576,28 +533,9 @@ function renderCanvas() {
 
 // Update game loop
 function update(){
-    // uiCtx.clearRect(0,0,uiCanvas.width,uiCanvas.height);
-    // let lineHeight = ctx.measureText(`Code: ${keylog}`).width;
     ctx.clearRect(0,0,canvas.width,canvas.height);
     drawBorder(0, 128, 512, 384);
-    // notifyCtx.clearRect(0,0,canvas.width,canvas.height);
 
-    // Border Grid
-    // drawGrid(0, 0+cellSize, 512, 512-cellSize);
-
-    // for (let x = 0; x < 512*.122; x++) drawGrid(0+cellSize+cellSize*x, 0+cellSize, 0, 512-cellSize);
-    // for (let y = 0; y < 512*.122; y++) drawGrid(0, 0+cellSize+cellSize+cellSize*y, 512, 0);
-
-    // for (let i = 0; i < cards.length; i++){
-    //     if (collision(mouse, cards[`${i}`]) && mouse.clicked){
-    //         choosenTower = cards[`${i}`].type;
-    //         chooseTower();
-    //     }
-    // }
-
-    // ctx.fillStyle = 'black';
-    // ctx.fillRect(0,0,controlBar.width,controlBar.height);
-    // handleAreaGrid();
     if (mouse.clicked) handleAreaGrid();
     handleBtns();
 
@@ -645,7 +583,6 @@ function drawLabel(text, align, color, x, y, size){
     ctx.textAlign = align;
     ctx.font = `${size}px ${customFont}`;
     ctx.fillText(`${text}`, x, y);
-    // ctx.fillText(`Brush Size:${Math.floor(mouse.width)}`, canvas.width-42-30*3, 40);
 }
 
 // Grid collision
@@ -665,11 +602,6 @@ function collision(first,second){
 function areaCollision(p, c){
     const children = [];
     children.push(c);
-    // if (collision(p,children)){
-    //     for (let i = 0; i < children.length; i++){
-    //         c.draw();
-    //     }
-    // }
     return children;
 };
 
