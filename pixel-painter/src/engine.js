@@ -198,10 +198,6 @@ canvas.addEventListener('mousemove', function(e){
 
     mouse.y = mouse.y - mouse.height*.5;
     mouse.x = mouse.x - mouse.width*.5;
-
-    // pixCtx.clearRect(mouse.x, mouse.y, mouse.height, mouse.width);
-    // if (mouse.clicked) handleAreaGrid();
-    // handleGameGrid();
 });
 
 
@@ -218,19 +214,14 @@ canvas.addEventListener('mouseleave', function(e){
 
 // Mouse Down Event
 canvas.addEventListener('mousedown', function(e){
-    // activeColor = `rgb(${Matrandom() * 25 + 50}, ${Math.random() * 25 + 50}, ${Math.random() * 25 + 50, 1})`;
     mouse.clicked = true;
 });
 
 canvas.addEventListener('mouseup', function(e){
     mouse.clicked = false;
-    // pixCtx.clearRect(0, 0, pixCanvas.width, pixCanvas.height);
-    // handleAreaGrid();
 });
 
 canvas.addEventListener('wheel', function(e){
-    // mouse.width += e;
-    // mouse.height += e;
     mouse.width += -e.deltaY*.01;
     mouse.height += -e.deltaY*.01;
 
@@ -238,8 +229,6 @@ canvas.addEventListener('wheel', function(e){
         mouse.width = 0.01;
         mouse.height = 0.01;
     }
-
-    // console.log(mouse.height);
 });
 
 
@@ -305,21 +294,21 @@ class Pixel {
     //     uiCtx.strokeRect(this.x, this.y, this.width, this.height);
     // }
 
+    paint(c, a){
+        this.opacity = a;
+        this.color = c;
+    }
+
+    erase(){
+        pixCtx.clearRect(this.x, this.y, this.height, this.width)
+        this.opacity = 0;
+    }
+
     // Cell draw function
     draw(){
-        if (this.opacity === 0) pixCtx.clearRect(this.x, this.y, this.height, this.width);
-
         pixCtx.globalAlpha = this.opacity;
         pixCtx.fillStyle = this.color;
         pixCtx.fillRect(this.x, this.y, this.width, this.height);
-
-        if (mouse && collision(this,mouse)){
-            // Draw pixels
-            if (mouse.clicked) {
-                this.opacity = activeOpacity;
-                this.color = activeColor;
-            }
-        }
     }
 }
 
@@ -336,7 +325,6 @@ function createGrid(){
 
 // Cycle through grid array
 function handleGameGrid(){
-    // pixCtx.clearRect(0, 0, pixCanvas.width, pixCanvas.height);
     [...gameGrid].forEach(ob => ob.draw());
 }
 
@@ -364,8 +352,6 @@ class Area {
 
     // Cell draw function
     update(){
-        // pixCtx.clearRect(this.x, this.y, this.height, this.width);
-
         if (settings.showAreas) {
             ctx.globalAlpha = 1;
             ctx.strokeStyle = 'Black';
@@ -378,15 +364,14 @@ class Area {
             this.pixels = this.query(someP);
 
             for (let i in this.pixels){
-                // this.pixels[i].hovered = false;
-                // this.pixels[i].draw();
-
-                // if (mouse && activeOpacity > 0 && collision(mouse, this.pixels[i])) {
-                //     pixCtx.clearRect(this.pixels[i].x, this.pixels[i].y, this.pixels[i].width, this.pixels[i].height);
-                //     uiCtx.strokeRect(this.pixels[i].x, this.pixels[i].y, this.pixels[i].width, this.pixels[i].height);
-                // } 
-
-                this.pixels[i].draw();
+                if (collision(this.pixels[i], mouse) && mouse.clicked){
+                    if (activeOpacity === 0) {
+                        this.pixels[i].erase();
+                    } else {
+                        this.pixels[i].paint(activeColor, activeOpacity);
+                        this.pixels[i].draw();
+                    }
+                }
             }
             this.pixels.length = 0;
         }
@@ -500,36 +485,18 @@ function handleBtns() {
 }
 
 
-function drawLine(sx, sy, ex, ey){
-    gridCtx.globalAlpha = 1;
-    gridCtx.strokeStyle = 'Black';
-    gridCtx.lineWidth = 1;
-
-    gridCtx.beginPath();
-    gridCtx.moveTo(sx, sy);
-    gridCtx.lineTo(ex, ey);
-    gridCtx.stroke();
-}
-
 function drawRect(x, y, w, h){
     gridCtx.globalAlpha = 1;
     gridCtx.strokeStyle = 'Black';
     gridCtx.strokeRect(x, y, w, h);
 }
 
+
 function drawBorder(x, y, w, h){
     ctx.globalAlpha = 1;
     ctx.strokeStyle = 'Black';
     ctx.strokeRect(x, y, w, h);
 }
-
-function drawCStroke(x, y, w, h, c){
-    ctx.globalAlpha = 1;
-    ctx.strokeStyle = c;
-    ctx.strokeRect(x, y, w, h);
-}
-
-
 
 
 function toggleGrid() {
@@ -624,6 +591,7 @@ function drawLabel(text, align, color, x, y, size){
     ctx.font = `${size}px ${customFont}`;
     ctx.fillText(`${text}`, x, y);
 }
+
 
 // Grid collision
 function collision(first,second){
