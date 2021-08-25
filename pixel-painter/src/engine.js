@@ -28,6 +28,13 @@ uiCanvas.height = window.innerHeight;
 uiCanvas.style.top = `${canvasPosition.top}px`;
 uiCanvas.style.left = `${canvasPosition.left}px`;
 
+const mouseCanvas = document.getElementById("mouseCanvas");
+const mouseCtx = mouseCanvas.getContext('2d');
+mouseCanvas.width = window.innerWidth;
+mouseCanvas.height = window.innerHeight;
+mouseCanvas.style.top = `${canvasPosition.top}px`;
+mouseCanvas.style.left = `${canvasPosition.left}px`;
+
 // Draw border rect around canvas
 drawBorder(0, 128, 512, 364);
 
@@ -55,6 +62,7 @@ const settings = {
     fpsVisible: true,
     showAreas: false,
     showGrid: false,
+    showBrush: false,
     graphicSmoothing: false,
     preserveAspect: false,
 }
@@ -72,6 +80,9 @@ gridCtx.imageSmoothingEnabled = settings.graphicSmoothing;
 uiCtx.mozImageSmoothingEnabled = settings.graphicSmoothing;
 uiCtx.msImageSmoothingEnabled = settings.graphicSmoothing;
 uiCtx.imageSmoothingEnabled = settings.graphicSmoothing;
+mouseCtx.mozImageSmoothingEnabled = settings.graphicSmoothing;
+mouseCtx.msImageSmoothingEnabled = settings.graphicSmoothing;
+mouseCtx.imageSmoothingEnabled = settings.graphicSmoothing;
 
 // Global Font Settings
 const customFont = 'Orbitron'; // Verdana
@@ -134,6 +145,8 @@ window.addEventListener('resize', function(){
     gridCanvas.width = canvas.width;
     uiCanvas.height = canvas.height;
     uiCanvas.width = canvas.width;
+    mouseCanvas.height = canvas.height;
+    mouseCanvas.width = canvas.width;
     // notifyCanvas.height = canvas.height;
     // notifyCanvas.width = canvas.width;
 
@@ -145,6 +158,8 @@ window.addEventListener('resize', function(){
     gridCanvas.style.width = `${CANVAS_WIDTH}px`;
     uiCanvas.style.height = `${CANVAS_HEIGHT}px`;
     uiCanvas.style.width = `${CANVAS_WIDTH}px`;
+    mouseCanvas.style.height = `${CANVAS_HEIGHT}px`;
+    mouseCanvas.style.width = `${CANVAS_WIDTH}px`;
     // notifyCanvas.style.height = `${CANVAS_HEIGHT}px`;
     // notifyCanvas.style.width = `${CANVAS_WIDTH}px`;
 
@@ -156,6 +171,8 @@ window.addEventListener('resize', function(){
     gridCanvas.style.left = `${canvasPosition.left}px`;
     uiCanvas.style.top = `${canvasPosition.top}px`;
     uiCanvas.style.left = `${canvasPosition.left}px`;
+    mouseCanvas.style.top = `${canvasPosition.top}px`;
+    mouseCanvas.style.left = `${canvasPosition.left}px`;
     // notifyCanvas.style.top = `${canvasPosition.top}px`;
     // notifyCanvas.style.left = `${canvasPosition.left}px`;
 
@@ -251,6 +268,10 @@ window.addEventListener('keydown', (e) => {
         case "]":
             mouse.width += 0.5;
             mouse.height += 0.5;
+            break;
+        case "m":
+            settings.showBrush = !settings.showBrush;
+            mouseCtx.clearRect(0, 0, mouseCanvas.width, mouseCanvas.height);
             break;
     }
 });
@@ -502,6 +523,13 @@ function drawBorder(x, y, w, h){
     ctx.strokeRect(x, y, w, h);
 }
 
+function drawCStroke(x, y, w, h, c){
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = c;
+    ctx.strokeRect(x, y, w, h);
+}
+
+
 
 
 function toggleGrid() {
@@ -545,6 +573,7 @@ function update(){
     drawLabel(`[ ] or Mouse Wheel`, 'right', 'Teal',                    canvas.width-42-30*3, 0+labelOffset*3, 18);
     drawLabel(`Toggle Grid: G`, 'right', 'Teal',                        canvas.width-42-30*3, 0+labelOffset*4, 18);
     drawLabel(`Clear Canvas: E`, 'right', 'Teal',                       canvas.width-42-30*3, 0+labelOffset*5, 18);
+    drawLabel(`Show Brush: M`, 'right', 'Teal',                         canvas.width-42-30*3, 0+labelOffset*6, 18);
 
     // Show fps if settings fpsVisible is true
     if (settings?.fpsVisible){
@@ -561,6 +590,17 @@ function update(){
         ctx.fillText(`FPS:${fps}`, 32,canvas.height-35);
 
         ctx.globalAlpha = 1;
+    }
+
+    // Draw brush size
+    // drawCStroke(mouse.x, mouse.y, mouse.width, mouse.height, 'teal');
+
+    if (settings.showBrush) {
+        mouseCtx.clearRect(0,0, mouseCanvas.width, mouseCanvas.height);
+        mouseCtx.globalAlpha = 1;
+        mouseCtx.lineWidth = 2;
+        mouseCtx.strokeStyle = 'Teal';
+        mouseCtx.strokeRect(mouse.x,mouse.y,mouse.width,mouse.height);
     }
 
      // FPS Calculation Debug
