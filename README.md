@@ -1,7 +1,7 @@
 # js-pixel-painter
 A pixel painting app made in Javascript.
 
-![image](https://user-images.githubusercontent.com/11281480/130556159-06e4d3c2-2ec9-45fe-bc0b-bb8335556253.png)
+![image](https://user-images.githubusercontent.com/11281480/131085155-3454f49d-3994-494b-8fb6-c829cc61f475.png)
 
 ### How to Play / Install
 * install npm ( https://docs.npmjs.com/downloading-and-installing-node-js-and-npm )
