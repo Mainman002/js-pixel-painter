@@ -5,7 +5,7 @@ const pixCanvasSize = {w:512, h:512};
 // const init_array = new initArray;
 // const push_array = new pushArray;
 
-const canvas = document.getElementById("canvas");
+// const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
@@ -14,7 +14,7 @@ canvas.height = window.innerHeight;
 // canvas.style.top = `50%+100`;
 let canvasPosition = canvas.getBoundingClientRect();
 
-const pixCanvas = document.getElementById("pixCanvas");
+// const pixCanvas = document.getElementById("pixCanvas");
 const pixCtx = pixCanvas.getContext('2d');
 pixCanvas.width = pixCanvasSize.w;
 pixCanvas.height = pixCanvasSize.h;
@@ -24,28 +24,28 @@ let pixCanvasPosition = pixCanvas.getBoundingClientRect();
 pixCanvas.style.top = `${pixCanvasPosition.top}px`;
 pixCanvas.style.left = `${pixCanvasPosition.left}px`;
 
-const gridCanvas = document.getElementById("gridCanvas");
+// const gridCanvas = document.getElementById("gridCanvas");
 const gridCtx = gridCanvas.getContext('2d');
 gridCanvas.width = pixCanvasSize.w;
 gridCanvas.height = pixCanvasSize.h;
 gridCanvas.style.top = `${pixCanvasPosition.top}px`;
 gridCanvas.style.left = `${pixCanvasPosition.left}px`;
 
-const areaCanvas = document.getElementById("areaCanvas");
+// const areaCanvas = document.getElementById("areaCanvas");
 const areaCtx = areaCanvas.getContext('2d');
 areaCanvas.width = pixCanvasSize.w;
 areaCanvas.height = pixCanvasSize.h;
 areaCanvas.style.top = `${pixCanvasPosition.top}px`;
 areaCanvas.style.left = `${pixCanvasPosition.left}px`;
 
-const uiCanvas = document.getElementById("uiCanvas");
+// const uiCanvas = document.getElementById("uiCanvas");
 const uiCtx = uiCanvas.getContext('2d');
 uiCanvas.width = window.innerWidth;
 uiCanvas.height = window.innerHeight;
 uiCanvas.style.top = `${canvasPosition.top}px`;
 uiCanvas.style.left = `${canvasPosition.left}px`;
 
-const mouseCanvas = document.getElementById("mouseCanvas");
+// const mouseCanvas = document.getElementById("mouseCanvas");
 const mouseCtx = mouseCanvas.getContext('2d');
 mouseCanvas.width = window.innerWidth;
 mouseCanvas.height = window.innerHeight;
@@ -594,7 +594,7 @@ class Area {
         if (mouse && pixMouse && collision(this, pixMouse)){
             const someP = [];
             this.pixels = this.query(someP);
-            console.log(this.pixels.length);
+            // console.log(this.pixels.length);
 
             for (let i in this.pixels){
                 if (collision(this.pixels[i], pixMouse) && mouse.clicked){
