@@ -13,20 +13,28 @@
     <script type="module" src="src/engine.js"></script>
 
     <!-- <a href="#" class="button" id="btn-download">Download</a> -->
-    <a href="#" class="button" id="btn-download" download="pixel_canvas.png">Download</a>
+    <!-- <a href="#" class="button" id="btn-download" download="pixel_canvas.png">Download</a> -->
 </head>
 
 <body>
 
     
     <!-- <canvas id="uiCanvas"></canvas> -->
-    <canvas id="canvas"></canvas>
-    <canvas id="pixCanvas"></canvas>
-    <canvas id="gridCanvas"></canvas>
-    <canvas id="uiCanvas"></canvas>
-    <canvas id="mouseCanvas"></canvas>
-    <!-- <canvas id="notifyCanvas"></canvas> -->
-    <canvas id="saveCanvas" width="256px" height="256px"></canvas>
+    <div id="mainCanvas">
+        <canvas id="canvas"></canvas>
+        <canvas id="pixCanvas"></canvas>
+        <canvas id="gridCanvas"></canvas>
+        <canvas id="areaCanvas"></canvas>
+        <canvas id="uiCanvas"></canvas>
+        <canvas id="mouseCanvas"></canvas>
+        <!-- <canvas id="notifyCanvas"></canvas> -->
+        <canvas id="saveCanvas" width="256px" height="256px"></canvas>
+    </div>
+
+    <!-- <div id="sideCanvas">
+        <canvas id="btnCanvas"></canvas>
+    </div> -->
+
 
     <img src="" id="mirror" class="canvas__mirror" />
     

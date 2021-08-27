@@ -21,6 +21,29 @@ body{
     image-rendering: pixelated;
 }
 
+/* #mainCanvas{
+    margin:0;
+    padding:0;
+    overflow: hidden;
+    position: absolute;
+    width:'900px';
+    height:'600px';
+    padding-top: 0px;
+    padding-left: 0px;
+}
+
+#sideCanvas{
+    margin:0;
+    padding:0;
+    overflow: hidden;
+    position: absolute;
+    width:'128px';
+    height:'600px';
+    padding-top: 0px;
+    padding-right: 0px;
+} */
+
+
 #canvas{
     margin:0;
     padding:0;
@@ -42,6 +65,7 @@ body{
     width:'512px';
     height:'512px';
     pointer-events: none;
+    /* border: 2px rgb(32, 43, 54); */
     /* background: linear-gradient(-12deg, rgb(26, 46, 100), rgb(0, 93, 121), rgb(103, 172, 179)); */
     font-family: 'Orbitron', sans-serif;
     /* border: 1px solid black; */
@@ -53,8 +77,19 @@ body{
     padding:0;
     overflow: hidden;
     position: absolute;
-    width:'900px';
-    height:'600px';
+    width:'512px';
+    height:'512px';
+    pointer-events: none;
+    font-family: 'Orbitron', sans-serif;
+}
+
+#areaCanvas{
+    margin:0;
+    padding:0;
+    overflow: hidden;
+    position: absolute;
+    width:'512px';
+    height:'512px';
     pointer-events: none;
     font-family: 'Orbitron', sans-serif;
 }
@@ -80,7 +115,7 @@ body{
     position: absolute;
     pointer-events: none;
     width:'900px';
-    height:'100px';
+    height:'600px';
     /* background: linear-gradient(-12deg, rgb(26, 46, 100), rgb(0, 93, 121), rgb(103, 172, 179)); */
     font-family: 'Orbitron', sans-serif;
     /* border: 1px solid black; */
@@ -94,7 +129,7 @@ body{
     position: absolute;
     pointer-events: none;
     width:'900px';
-    height:'100px';
+    height:'600px';
     z-index: 5;
     /* background: linear-gradient(-12deg, rgb(26, 46, 100), rgb(0, 93, 121), rgb(103, 172, 179)); */
     font-family: 'Orbitron', sans-serif;
@@ -116,6 +151,7 @@ img{
     height: 100%;
     width: 100%; 
     position: absolute;
+    pointer-events: none;
 }
 
 #btn-download{
@@ -128,5 +164,6 @@ img{
     z-index: 2;
     height: 100;
     width: 100; 
+    /* pointer-events: none; */
 }
 

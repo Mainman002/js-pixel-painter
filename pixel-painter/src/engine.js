@@ -1,3 +1,10 @@
+import {initArray} from "../src/modules/array_tools.js";
+
+const pixCanvasSize = {w:512, h:512};
+
+// const init_array = new initArray;
+// const push_array = new pushArray;
+
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth;
@@ -9,17 +16,27 @@ let canvasPosition = canvas.getBoundingClientRect();
 
 const pixCanvas = document.getElementById("pixCanvas");
 const pixCtx = pixCanvas.getContext('2d');
-pixCanvas.width = 512;
-pixCanvas.height = 512;
-pixCanvas.style.top = `${canvasPosition.top}px`;
-pixCanvas.style.left = `${canvasPosition.left}px`;
+pixCanvas.width = pixCanvasSize.w;
+pixCanvas.height = pixCanvasSize.h;
+
+let pixCanvasPosition = pixCanvas.getBoundingClientRect();
+
+pixCanvas.style.top = `${pixCanvasPosition.top}px`;
+pixCanvas.style.left = `${pixCanvasPosition.left}px`;
 
 const gridCanvas = document.getElementById("gridCanvas");
 const gridCtx = gridCanvas.getContext('2d');
-gridCanvas.width = 512;
-gridCanvas.height = 512;
-gridCanvas.style.top = `${canvasPosition.top}px`;
-gridCanvas.style.left = `${canvasPosition.left}px`;
+gridCanvas.width = pixCanvasSize.w;
+gridCanvas.height = pixCanvasSize.h;
+gridCanvas.style.top = `${pixCanvasPosition.top}px`;
+gridCanvas.style.left = `${pixCanvasPosition.left}px`;
+
+const areaCanvas = document.getElementById("areaCanvas");
+const areaCtx = areaCanvas.getContext('2d');
+areaCanvas.width = pixCanvasSize.w;
+areaCanvas.height = pixCanvasSize.h;
+areaCanvas.style.top = `${pixCanvasPosition.top}px`;
+areaCanvas.style.left = `${pixCanvasPosition.left}px`;
 
 const uiCanvas = document.getElementById("uiCanvas");
 const uiCtx = uiCanvas.getContext('2d');
@@ -36,33 +53,37 @@ mouseCanvas.style.top = `${canvasPosition.top}px`;
 mouseCanvas.style.left = `${canvasPosition.left}px`;
 
 // Draw border rect around canvas
-drawBorder(0, 128, 512, 364);
+// drawBorder(0, 128, 512, 364);
+// drawBorder(pixCanvas.style.left, pixCanvas.style.top, pixCanvas.width, pixCanvas.height);
 
-const mirror = document.getElementById('mirror');
-mirror.addEventListener('contextmenu', function (e) {
-    // let nCanvas = renderCanvas().canvas;
-    let dataURL = pixCanvas.toDataURL('image/png');
-    mirror.src = dataURL;
-});
+// const mirror = document.getElementById('mirror');
+// mirror.addEventListener('contextmenu', function (e) {
+//     // let nCanvas = renderCanvas().canvas;
+//     let dataURL = pixCanvas.toDataURL('image/png');
+//     mirror.src = dataURL;
+// });
 
-const button = document.getElementById('btn-download');
-button.addEventListener('click', function (e) {
-    // let nCanvas = renderCanvas().canvas;
-    let dataURL = pixCanvas.toDataURL('image/png');
-    button.href = dataURL;
-});
+// const button = document.getElementById('btn-download');
+// button.addEventListener('click', function (e) {
+//     // let nCanvas = renderCanvas().canvas;
+//     let dataURL = pixCanvas.toDataURL('image/png');
+//     button.href = dataURL;
+// });
 
 // Canvas dymensions
 let WIDTH = 900;
 let HEIGHT = 600;
 let CANVAS_WIDTH = 900;
 let CANVAS_HEIGHT = 600;
+let PIX_CANVAS_WIDTH = pixCanvasSize.w;
+let PIX_CANVAS_HEIGHT = pixCanvasSize.h;
 
 const settings = {
     fpsVisible: true,
     showAreas: false,
     showGrid: false,
     showBrush: false,
+    showBrushHover: false,
     graphicSmoothing: false,
     preserveAspect: false,
 }
@@ -83,6 +104,9 @@ uiCtx.imageSmoothingEnabled = settings.graphicSmoothing;
 mouseCtx.mozImageSmoothingEnabled = settings.graphicSmoothing;
 mouseCtx.msImageSmoothingEnabled = settings.graphicSmoothing;
 mouseCtx.imageSmoothingEnabled = settings.graphicSmoothing;
+areaCtx.mozImageSmoothingEnabled = settings.graphicSmoothing;
+areaCtx.msImageSmoothingEnabled = settings.graphicSmoothing;
+areaCtx.imageSmoothingEnabled = settings.graphicSmoothing;
 
 // Global Font Settings
 const customFont = 'Orbitron'; // Verdana
@@ -94,7 +118,7 @@ globalThis.fps = 0;
 
 // Variables
 const areaItems = [];
-const areaSize = 64;
+const areaSize = pixCanvasSize.w*.25;
 const areaGap = 3;
 const cellSize = 8;
 const cellGap = 3;
@@ -108,17 +132,28 @@ const buttons = [];
 const mouse = {
     x: 10,
     y: 10,
-    width: .03,
-    height: .03,
+    width: .01,
+    height: .01,
     clicked: false,
+    lockDir: {x:false, y:false},
+}
+
+const pixMouse = {
+    x: 10,
+    y: 10,
+    width: .01,
+    height: .01,
+    clicked: false,
+    lockDir: {x:false, y:false},
 }
 
 const btnMouse = {
     x: 10,
     y: 10,
-    width: .03,
-    height: .03,
+    width: .01,
+    height: .01,
     clicked: false,
+    lockDir: {x:false, y:false},
 }
 
 let activeColor = `rgb(255, 255, 255)`;
@@ -129,52 +164,116 @@ let showGrid = false;
 window.addEventListener('resize', function(){
     CANVAS_HEIGHT = window.innerHeight;
     CANVAS_WIDTH = window.innerWidth;
+    PIX_CANVAS_HEIGHT = window.innerHeight;
+    PIX_CANVAS_WIDTH = window.innerWidth;
+    
+    if (preserveAspect){
 
-    let ratio = 16 / 9;
-    if (CANVAS_HEIGHT < CANVAS_WIDTH / ratio){
-        CANVAS_WIDTH = CANVAS_HEIGHT * ratio;
+        let ratio = 16 / 9;
+        if (CANVAS_HEIGHT < CANVAS_WIDTH / ratio){
+            CANVAS_WIDTH = CANVAS_HEIGHT * ratio;
+        } else {
+            CANVAS_HEIGHT = CANVAS_WIDTH / ratio;
+        }
+
+        let pixRatio = 1 / 1;
+        if (PIX_CANVAS_HEIGHT < PIX_CANVAS_WIDTH / pixRatio){
+            PIX_CANVAS_WIDTH = PIX_CANVAS_HEIGHT * pixRatio;
+        } else {
+            PIX_CANVAS_HEIGHT = PIX_CANVAS_WIDTH / pixRatio;
+        }
+        
+        canvas.height = window.innerHeight;
+        canvas.width = window.innerWidth;
+        // canvas.style.height = `${CANVAS_HEIGHT}px`;
+        // canvas.style.width = `${CANVAS_WIDTH}px`;
+
+        uiCanvas.height = canvas.height;
+        uiCanvas.width = canvas.width;
+        uiCanvas.style.height = `${CANVAS_HEIGHT}px`;
+        uiCanvas.style.width = `${CANVAS_WIDTH}px`;
+        uiCanvas.style.top = `${canvasPosition.top}px`;
+        uiCanvas.style.left = `${canvasPosition.left}px`;
+
+        mouseCanvas.height = canvas.height;
+        mouseCanvas.width = canvas.width;
+        mouseCanvas.style.height = `${CANVAS_HEIGHT}px`;
+        mouseCanvas.style.width = `${CANVAS_WIDTH}px`;
+        mouseCanvas.style.top = `${canvasPosition.top}px`;
+        mouseCanvas.style.left = `${canvasPosition.left}px`;
+
+
+
+        pixCanvas.height = pixCanvasSize.h;
+        pixCanvas.width = pixCanvasSize.w;
+        pixCanvas.style.height = `${PIX_CANVAS_HEIGHT}px`;
+        pixCanvas.style.width = `${PIX_CANVAS_WIDTH}px`;
+        gridCanvas.style.top = `${canvasPosition.top}px`;
+        gridCanvas.style.left = `${canvasPosition.left}px`;
+
+        gridCanvas.height = pixCanvas.height;
+        gridCanvas.width = pixCanvas.width;
+        gridCanvas.style.height = `${PIX_CANVAS_HEIGHT}px`;
+        gridCanvas.style.width = `${PIX_CANVAS_WIDTH}px`;
+        gridCanvas.style.top = `${pixCanvasPosition.top}px`;
+        gridCanvas.style.left = `${pixCanvasPosition.left}px`;
+
+        areaCanvas.height = pixCanvas.height;
+        areaCanvas.width = pixCanvas.width;
+        areaCanvas.style.height = `${PIX_CANVAS_HEIGHT}px`;
+        areaCanvas.style.width = `${PIX_CANVAS_WIDTH}px`;
+        areaCanvas.style.top = `${pixCanvasPosition.top}px`;
+        areaCanvas.style.left = `${pixCanvasPosition.left}px`;
+
+        canvasPosition = canvas.getBoundingClientRect();
+        pixCanvasPosition = pixCanvas.getBoundingClientRect();
+
     } else {
-        CANVAS_HEIGHT = CANVAS_WIDTH / ratio;
-    }
 
-    canvas.height = HEIGHT;
-    canvas.width = WIDTH;
-    pixCanvas.height = canvas.height;
-    pixCanvas.width = canvas.width;
-    gridCanvas.height = canvas.height;
-    gridCanvas.width = canvas.width;
-    uiCanvas.height = canvas.height;
-    uiCanvas.width = canvas.width;
-    mouseCanvas.height = canvas.height;
-    mouseCanvas.width = canvas.width;
-    // notifyCanvas.height = canvas.height;
-    // notifyCanvas.width = canvas.width;
 
-    canvas.style.height = `${CANVAS_HEIGHT}px`;
-    canvas.style.width = `${CANVAS_WIDTH}px`;
-    pixCanvas.style.height = `${CANVAS_HEIGHT}px`;
-    pixCanvas.style.width = `${CANVAS_WIDTH}px`;
-    gridCanvas.style.height = `${CANVAS_HEIGHT}px`;
-    gridCanvas.style.width = `${CANVAS_WIDTH}px`;
-    uiCanvas.style.height = `${CANVAS_HEIGHT}px`;
-    uiCanvas.style.width = `${CANVAS_WIDTH}px`;
-    mouseCanvas.style.height = `${CANVAS_HEIGHT}px`;
-    mouseCanvas.style.width = `${CANVAS_WIDTH}px`;
-    // notifyCanvas.style.height = `${CANVAS_HEIGHT}px`;
-    // notifyCanvas.style.width = `${CANVAS_WIDTH}px`;
+        let ratio = 16 / 9;
+        if (CANVAS_HEIGHT < CANVAS_WIDTH / ratio){
+            CANVAS_WIDTH = CANVAS_HEIGHT * ratio;
+        } else {
+            CANVAS_HEIGHT = CANVAS_WIDTH / ratio;
+        }
 
-    canvasPosition = canvas.getBoundingClientRect();
+        canvas.height = HEIGHT;
+        canvas.width = WIDTH;
+        pixCanvas.height = canvas.height;
+        pixCanvas.width = canvas.width;
+        gridCanvas.height = canvas.height;
+        gridCanvas.width = canvas.width;
+        uiCanvas.height = canvas.height;
+        uiCanvas.width = canvas.width;
+        mouseCanvas.height = canvas.height;
+        mouseCanvas.width = canvas.width;
+        // notifyCanvas.height = canvas.height;
+        // notifyCanvas.width = canvas.width;
 
-    pixCanvas.style.top = `${canvasPosition.top}px`;
-    pixCanvas.style.left = `${canvasPosition.left}px`;
-    gridCanvas.style.top = `${canvasPosition.top}px`;
-    gridCanvas.style.left = `${canvasPosition.left}px`;
-    uiCanvas.style.top = `${canvasPosition.top}px`;
-    uiCanvas.style.left = `${canvasPosition.left}px`;
-    mouseCanvas.style.top = `${canvasPosition.top}px`;
-    mouseCanvas.style.left = `${canvasPosition.left}px`;
-    // notifyCanvas.style.top = `${canvasPosition.top}px`;
-    // notifyCanvas.style.left = `${canvasPosition.left}px`;
+        canvas.style.height = `${CANVAS_HEIGHT}px`;
+        canvas.style.width = `${CANVAS_WIDTH}px`;
+        pixCanvas.style.height = `${CANVAS_HEIGHT}px`;
+        pixCanvas.style.width = `${CANVAS_WIDTH}px`;
+        gridCanvas.style.height = `${CANVAS_HEIGHT}px`;
+        gridCanvas.style.width = `${CANVAS_WIDTH}px`;
+        uiCanvas.style.height = `${CANVAS_HEIGHT}px`;
+        uiCanvas.style.width = `${CANVAS_WIDTH}px`;
+        mouseCanvas.style.height = `${CANVAS_HEIGHT}px`;
+        mouseCanvas.style.width = `${CANVAS_WIDTH}px`;
+
+        canvasPosition = canvas.getBoundingClientRect();
+
+        pixCanvas.style.top = `${canvasPosition.top}px`;
+        pixCanvas.style.left = `${canvasPosition.left}px`;
+        gridCanvas.style.top = `${canvasPosition.top}px`;
+        gridCanvas.style.left = `${canvasPosition.left}px`;
+        uiCanvas.style.top = `${canvasPosition.top}px`;
+        uiCanvas.style.left = `${canvasPosition.left}px`;
+        mouseCanvas.style.top = `${canvasPosition.top}px`;
+        mouseCanvas.style.left = `${canvasPosition.left}px`;
+
+        }
 
     [...gameGrid].forEach(ob => ob.draw());
     toggleGrid();
@@ -184,20 +283,49 @@ window.addEventListener('resize', function(){
 
 // Mouse Move Event
 canvas.addEventListener('mousemove', function(e){
-    mouse.x = e.pageX - canvasPosition.left - scrollX;
-    mouse.y = e.pageY - canvasPosition.top - scrollY;
+    
+    if (mouse.lockDir.x){
+        mouse.x = undefined;
+        pixMouse.x = undefined;
+    } else {
+        // Canvas Mouse
+        mouse.x = e.pageX - canvasPosition.left - scrollX;
+        mouse.x /= canvasPosition.width; 
+        mouse.x *= canvas.width;
+        mouse.x = mouse.x - mouse.width*.5;
+        pixMouse.x = e.pageX - pixCanvasPosition.left - scrollX;
+        pixMouse.x /= pixCanvasPosition.width; 
+        pixMouse.x *= pixCanvas.width;
+        pixMouse.x = pixMouse.x - pixMouse.width*.5;
+    }
+    
+    
+    if (mouse.lockDir.y){
+        mouse.y = undefined;
+        pixMouse.y = undefined;
+    } else {
+        mouse.y = e.pageY - canvasPosition.top - scrollY;
+        mouse.y /= canvasPosition.height; 
+        mouse.y *= canvas.height;
+        mouse.y = mouse.y - mouse.height*.5;
+        pixMouse.y = e.pageY - pixCanvasPosition.top - scrollY;
+        pixMouse.y /= pixCanvasPosition.height; 
+        pixMouse.y *= pixCanvas.height;
+        pixMouse.y = pixMouse.y - pixMouse.height*.5;
+    }
+    
+    
+    btnMouse.x = e.pageX - canvasPosition.left - scrollX;
+    btnMouse.y = e.pageY - canvasPosition.top - scrollY;
+    
+    // pixMouse.x = e.pageX - pixCanvasPosition.left - scrollX;
+    // pixMouse.y = e.pageY - pixCanvasPosition.top - scrollY;
 
-    mouse.x /= canvasPosition.width; 
-    mouse.y /= canvasPosition.height; 
+    // pixMouse.y = pixMouse.y - pixMouse.height*.5;
+    // pixMouse.x = pixMouse.x - pixMouse.width*.5;
 
-    mouse.x *= canvas.width;
-    mouse.y *= canvas.height;
-
-    btnMouse.y = mouse.y;
-    btnMouse.x = mouse.x;
-
-    mouse.y = mouse.y - mouse.height*.5;
-    mouse.x = mouse.x - mouse.width*.5;
+    // Can hit performance hard when brush size is > 100
+    if (settings.showBrushHover) handleAreaGridHover();
 });
 
 
@@ -205,10 +333,19 @@ canvas.addEventListener('mousemove', function(e){
 canvas.addEventListener('mouseleave', function(e){
     mouse.y = undefined;
     mouse.x = undefined;
+    mouse.lockDir.x = false;
+    mouse.lockDir.y = false;
+
+    pixMouse.y = undefined;
+    pixMouse.x = undefined;
+    pixMouse.lockDir.x = false;
+    pixMouse.lockDir.y = false;
 
     btnMouse.y = undefined;
     btnMouse.x = undefined;
     mouse.clicked = false;
+
+
 });
 
 
@@ -229,6 +366,9 @@ canvas.addEventListener('wheel', function(e){
         mouse.width = 0.01;
         mouse.height = 0.01;
     }
+
+    pixMouse.width = mouse.width;
+    pixMouse.height = mouse.height;
 });
 
 
@@ -253,14 +393,81 @@ window.addEventListener('keydown', (e) => {
                 mouse.width += -0.5;
                 mouse.height += -0.5;
             }
+            pixMouse.width = mouse.width;
+            pixMouse.height = mouse.height;
             break;
         case "]":
             mouse.width += 0.5;
             mouse.height += 0.5;
+            pixMouse.width = mouse.width;
+            pixMouse.height = mouse.height;
             break;
         case "m":
             settings.showBrush = !settings.showBrush;
             mouseCtx.clearRect(0, 0, mouseCanvas.width, mouseCanvas.height);
+            break;
+        case "s":
+            saveImg();
+            break;
+        case "0":
+            mouse.width = 100;
+            mouse.height = 100;
+            pixMouse.width = 100;
+            pixMouse.height = 100;
+            break;
+        case "1":
+            mouse.width = 0.01;
+            mouse.height = 0.01;
+            pixMouse.width = 0.01;
+            pixMouse.height = 0.01;
+            break;
+        case "2":
+            mouse.width = 200;
+            mouse.height = 200;
+            pixMouse.width = 200;
+            pixMouse.height = 200;
+            break;
+        case "3":
+            mouse.width = 300;
+            mouse.height = 300;
+            pixMouse.width = 300;
+            pixMouse.height = 300;
+            break;
+        case "4":
+            mouse.width = 400;
+            mouse.height = 400;
+            pixMouse.width = 400;
+            pixMouse.height = 400;
+            break;
+        case "5":
+            mouse.width = 500;
+            mouse.height = 500;
+            pixMouse.width = 500;
+            pixMouse.height = 500;
+            break;
+        case "6":
+            mouse.width = 600;
+            mouse.height = 600;
+            pixMouse.width = 600;
+            pixMouse.height = 600;
+            break;
+        case "x":
+            mouse.lockDir.x = true;
+            break;
+        case "y":
+            mouse.lockDir.y = true;
+            break;
+
+    }
+});
+
+addEventListener('keyup', (e) => {
+    switch (e.key){
+        case "x":
+            mouse.lockDir.x = false;
+            break;
+        case "y":
+            mouse.lockDir.y = false;
             break;
     }
 });
@@ -275,7 +482,7 @@ class Pixel {
         this.height = cellSize;
         this.color = `rgb(0,0,0)`;
         this.opacity = 0;
-        // this.hovered = false;
+        this.hovered = false;
     }
 
     // Reset opacity to 0
@@ -286,13 +493,13 @@ class Pixel {
     }
 
     // Pixel hover function
-    // hover() {
-    //     uiCtx.clearRect(this.x, this.y, this.height, this.width);
-    //     uiCtx.globalAlpha = 1;
-    //     uiCtx.lineWidth = 1;
-    //     uiCtx.strokeStyle = 'Teal';
-    //     uiCtx.strokeRect(this.x, this.y, this.width, this.height);
-    // }
+    hover() {
+        uiCtx.clearRect(this.x, this.y, this.height, this.width);
+        uiCtx.globalAlpha = 1;
+        uiCtx.lineWidth = 1;
+        uiCtx.strokeStyle = 'Teal';
+        uiCtx.strokeRect(this.x, this.y, this.width, this.height);
+    }
 
     paint(c, a){
         this.opacity = a;
@@ -309,24 +516,32 @@ class Pixel {
         pixCtx.globalAlpha = this.opacity;
         pixCtx.fillStyle = this.color;
         pixCtx.fillRect(this.x, this.y, this.width, this.height);
+
+        if (settings.showBrushHover && this.hovered) this.hover;
     }
 }
 
 
 // create grid cells
 function createGrid(){
-    for (let y = cellSize; y < pixCanvas.height; y += cellSize){
-        for (let x = 0; x < pixCanvas.width; x += cellSize){
+
+    // for (let x = canvas.style.left; x < cellSize*2*4; x++){
+    //     for (let y = canvas.style.top; y < cellSize*2*3; y++){
+    //         drawRect(0+cellSize*x, 128+cellSize*y, cellSize, cellSize);
+
+    for (let x = 0; x < pixCanvasPosition.width; x += cellSize){
+        for (let y = 0; y < pixCanvasPosition.height; y += cellSize){
             gameGrid.push(new Pixel(x, y));
         }
     }
+    // console.log("GameG: ", gameGrid.length);
 }
 
 
 // Cycle through grid array
-function handleGameGrid(){
-    [...gameGrid].forEach(ob => ob.draw());
-}
+// function handleGameGrid(){
+//     [...gameGrid].forEach(ob => ob.draw());
+// }
 
 
 // Area class
@@ -350,21 +565,39 @@ class Area {
         return this.pixels;
     }
 
-    // Cell draw function
-    update(){
-        if (settings.showAreas) {
-            ctx.globalAlpha = 1;
-            ctx.strokeStyle = 'Black';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(this.x, this.y, this.width, this.height);
-        }
-
-        if (mouse && collision(this,mouse)){
+    hover(){
+        if (mouse && collision(this, mouse)){
             const someP = [];
             this.pixels = this.query(someP);
 
+            // uiCtx.clearRect(0, 0, canvas.width, canvas.height);
+            
             for (let i in this.pixels){
-                if (collision(this.pixels[i], mouse) && mouse.clicked){
+                if (collision(mouse, this.pixels[i])){
+                    // uiCtx.clearRect(0, 0, canvas.width, canvas.height);
+                    this.pixels[i].hover();
+                }
+            }
+            this.pixels.length = 0;
+        }
+    }
+
+    // Cell draw function
+    update(){
+        if (settings.showAreas) {
+            areaCtx.globalAlpha = 1;
+            areaCtx.strokeStyle = 'Black';
+            areaCtx.lineWidth = 1;
+            areaCtx.strokeRect(this.x, this.y, this.width, this.height);
+        }
+
+        if (mouse && pixMouse && collision(this, pixMouse)){
+            const someP = [];
+            this.pixels = this.query(someP);
+            console.log(this.pixels.length);
+
+            for (let i in this.pixels){
+                if (collision(this.pixels[i], pixMouse) && mouse.clicked){
                     if (activeOpacity === 0) {
                         this.pixels[i].erase();
                     } else {
@@ -381,8 +614,8 @@ class Area {
 
 // create grid area
 function createArea(){
-    for (let y = areaSize; y < pixCanvas.height; y += areaSize){
-        for (let x = 0; x < pixCanvas.width; x += areaSize){
+    for (let x = 0; x < pixCanvasPosition.width; x += areaSize){
+        for (let y = 0; y < pixCanvasPosition.height; y += areaSize){
             areaGrid.push(new Area(x, y, `Area_${y}`));
         }
     }
@@ -392,6 +625,12 @@ function createArea(){
 // Cycle through area array
 function handleAreaGrid(){
     [...areaGrid].forEach(ob => ob.update());
+}
+
+// Cycle through area array
+function handleAreaGridHover(){
+    areaCtx.clearRect(0, 0, areaCanvas.width, areaCanvas.height);
+    [...areaGrid].forEach(ob => ob.hover());
 }
 
 
@@ -431,7 +670,7 @@ class Button {
             if (mouse.clicked) {
                 activeOpacity = this.opacity;
                 activeColor = this.color;
-                uiCtx.clearRect(0,0,canvas.width,canvas.height);
+                uiCtx.clearRect(0,0,canvas.width,canvas.height); 
             }
         }
     }
@@ -443,38 +682,48 @@ function createBtns(){
 
     // White
     buttons.push(new Button(canvas.width-42,             20, 32, 32, {r:0, g:0, b:0}, 1 ));
-    buttons.push(new Button(canvas.width-42-btnOffset*1, 20, 32, 32, {r:127, g:127, b:127}, 1 ));
+    buttons.push(new Button(canvas.width-42-btnOffset*1, 20, 32, 32, {r:70, g:70, b:70}, 1 ));
     buttons.push(new Button(canvas.width-42-btnOffset*2, 20, 32, 32, {r:255, g:255, b:255}, 1 ));
 
+    // Grey
+    buttons.push(new Button(canvas.width-42,             20+btnOffset*1, 32, 32, {r:32, g:32, b:32}, 1 ));
+    buttons.push(new Button(canvas.width-42-btnOffset*1, 20+btnOffset*1, 32, 32, {r:100, g:100, b:100}, 1 ));
+    buttons.push(new Button(canvas.width-42-btnOffset*2, 20+btnOffset*1, 32, 32, {r:140, g:140, b:140}, 1 ));
+
     // Red
-    buttons.push(new Button(canvas.width-42,             20+btnOffset*1, 32, 32, {r:55, g:0, b:0}, 1 ));
-    buttons.push(new Button(canvas.width-42-btnOffset*1, 20+btnOffset*1, 32, 32, {r:127, g:0, b:0}, 1 ));
-    buttons.push(new Button(canvas.width-42-btnOffset*2, 20+btnOffset*1, 32, 32, {r:255, g:0, b:0}, 1 ));
+    buttons.push(new Button(canvas.width-42,             20+btnOffset*2, 32, 32, {r:55, g:0, b:0}, 1 ));
+    buttons.push(new Button(canvas.width-42-btnOffset*1, 20+btnOffset*2, 32, 32, {r:127, g:0, b:0}, 1 ));
+    buttons.push(new Button(canvas.width-42-btnOffset*2, 20+btnOffset*2, 32, 32, {r:255, g:0, b:0}, 1 ));
+
+    // Orange
+    buttons.push(new Button(canvas.width-42,             20+btnOffset*3, 32, 32, {r:148, g:26, b:28}, 1 ));
+    buttons.push(new Button(canvas.width-42-btnOffset*1, 20+btnOffset*3, 32, 32, {r:243, g:114, b:32}, 1 ));
+    buttons.push(new Button(canvas.width-42-btnOffset*2, 20+btnOffset*3, 32, 32, {r:255, g:163, b:26}, 1 ));
 
     // Yellow
-    buttons.push(new Button(canvas.width-42,             20+btnOffset*2, 32, 32, {r:55, g:55, b:0}, 1 ));
-    buttons.push(new Button(canvas.width-42-btnOffset*1, 20+btnOffset*2, 32, 32, {r:127, g:127, b:0}, 1 ));
-    buttons.push(new Button(canvas.width-42-btnOffset*2, 20+btnOffset*2, 32, 32, {r:255, g:255, b:0}, 1 ));
+    buttons.push(new Button(canvas.width-42,             20+btnOffset*4, 32, 32, {r:55, g:55, b:0}, 1 ));
+    buttons.push(new Button(canvas.width-42-btnOffset*1, 20+btnOffset*4, 32, 32, {r:127, g:127, b:0}, 1 ));
+    buttons.push(new Button(canvas.width-42-btnOffset*2, 20+btnOffset*4, 32, 32, {r:255, g:255, b:0}, 1 ));
     
     // Green
-    buttons.push(new Button(canvas.width-42,             20+btnOffset*3, 32, 32, {r:0, g:55, b:0}, 1 ));
-    buttons.push(new Button(canvas.width-42-btnOffset*1, 20+btnOffset*3, 32, 32, {r:0, g:127, b:0}, 1 ));
-    buttons.push(new Button(canvas.width-42-btnOffset*2, 20+btnOffset*3, 32, 32, {r:0, g:255, b:0}, 1 ));
+    buttons.push(new Button(canvas.width-42,             20+btnOffset*5, 32, 32, {r:0, g:55, b:0}, 1 ));
+    buttons.push(new Button(canvas.width-42-btnOffset*1, 20+btnOffset*5, 32, 32, {r:0, g:127, b:0}, 1 ));
+    buttons.push(new Button(canvas.width-42-btnOffset*2, 20+btnOffset*5, 32, 32, {r:0, g:255, b:0}, 1 ));
 
     // Teal
-    buttons.push(new Button(canvas.width-42,             20+btnOffset*4, 32, 32, {r:0, g:55, b:55}, 1 ));
-    buttons.push(new Button(canvas.width-42-btnOffset*1, 20+btnOffset*4, 32, 32, {r:0, g:127, b:127}, 1 ));
-    buttons.push(new Button(canvas.width-42-btnOffset*2, 20+btnOffset*4, 32, 32, {r:0, g:255, b:255}, 1 ));
+    buttons.push(new Button(canvas.width-42,             20+btnOffset*6, 32, 32, {r:0, g:55, b:55}, 1 ));
+    buttons.push(new Button(canvas.width-42-btnOffset*1, 20+btnOffset*6, 32, 32, {r:0, g:127, b:127}, 1 ));
+    buttons.push(new Button(canvas.width-42-btnOffset*2, 20+btnOffset*6, 32, 32, {r:0, g:255, b:255}, 1 ));
 
     // Blue
-    buttons.push(new Button(canvas.width-42,             20+btnOffset*5, 32, 32, {r:0, g:0, b:55}, 1 ));
-    buttons.push(new Button(canvas.width-42-btnOffset*1, 20+btnOffset*5, 32, 32, {r:0, g:0, b:127}, 1 ));
-    buttons.push(new Button(canvas.width-42-btnOffset*2, 20+btnOffset*5, 32, 32, {r:0, g:0, b:255}, 1 ));
+    buttons.push(new Button(canvas.width-42,             20+btnOffset*7, 32, 32, {r:0, g:0, b:55}, 1 ));
+    buttons.push(new Button(canvas.width-42-btnOffset*1, 20+btnOffset*7, 32, 32, {r:0, g:0, b:127}, 1 ));
+    buttons.push(new Button(canvas.width-42-btnOffset*2, 20+btnOffset*7, 32, 32, {r:0, g:0, b:255}, 1 ));
 
     // Eraser
-    buttons.push(new Button(canvas.width-42,             21+btnOffset*6, 32, 32, {r:0, g:0, b:0}, 0 ));
-    buttons.push(new Button(canvas.width-42-btnOffset*1, 20+btnOffset*6, 32, 32, {r:0, g:0, b:0}, 0 ));
-    buttons.push(new Button(canvas.width-42-btnOffset*2, 20+btnOffset*6, 32, 32, {r:0, g:0, b:0}, 0 ));
+    // buttons.push(new Button(canvas.width-42,             21+btnOffset*8, 32, 32, {r:0, g:0, b:0}, 0 ));
+    // buttons.push(new Button(canvas.width-42-btnOffset*1, 20+btnOffset*8, 32, 32, {r:0, g:0, b:0}, 0 ));
+    buttons.push(new Button(canvas.width-42-btnOffset*2, 20+btnOffset*8, 32, 32, {r:0, g:0, b:0}, 0 ));
 }
 
 
@@ -487,6 +736,7 @@ function handleBtns() {
 
 function drawRect(x, y, w, h){
     gridCtx.globalAlpha = 1;
+    ctx.lineWidth = 1;
     gridCtx.strokeStyle = 'Black';
     gridCtx.strokeRect(x, y, w, h);
 }
@@ -494,42 +744,56 @@ function drawRect(x, y, w, h){
 
 function drawBorder(x, y, w, h){
     ctx.globalAlpha = 1;
+    ctx.lineWidth = 1;
     ctx.strokeStyle = 'Black';
     ctx.strokeRect(x, y, w, h);
 }
 
 
 function toggleGrid() {
-    gridCtx.clearRect(0, 0, gridCanvas.width, gridCanvas.height);
+    gridCtx.clearRect(0, 0, canvas.width, canvas.height);
     if (settings.showGrid) {
 
-        // draw boxes
-        for (let x = 0; x < cellSize*2*4; x++){
-            for (let y = 0; y < cellSize*2*3; y++){
-                drawRect(0+cellSize*x, 128+cellSize*y, cellSize, cellSize);
+        // for (let x = cellSize; x < gridCanvas.height; x += cellSize){
+        //     for (let y = 0; y < gridCanvas.width; y += cellSize){
+        //         gameGrid.push(new Pixel(x, y));
+        //     }
+
+        for (let x = 0; x < pixCanvasPosition.width; x += cellSize){
+            for (let y = 0; y < pixCanvasPosition.height; y += cellSize){
+                // gameGrid.push(new Pixel(x, y));
+                drawRect(x, y, cellSize, cellSize);
             }
         }
+
+        // draw boxes
+        // for (let x = canvas.style.left; x < cellSize*2*4; x++){
+        //     for (let y = canvas.style.top; y < cellSize*2*3; y++){
+        //         drawRect(0+cellSize*x, 128+cellSize*y, cellSize, cellSize);
+        //     }
+        // }
     }
 }
 
 
-function renderCanvas() {
-    let one = document.getElementById("saveCanvas").getContext("bitmaprenderer");
+// function renderCanvas() {
+//     let one = document.getElementById("saveCanvas").getContext("bitmaprenderer");
 
-    let offscreen = new OffscreenCanvas(256, 256);
-    let gl = offscreen.getContext('webgl');
+//     let offscreen = new OffscreenCanvas(256, 256);
+//     let gl = offscreen.getContext('webgl');
 
-    // Commit rendering to the first canvas
-    let bitmapOne = offscreen.transferToImageBitmap();
-    one.transferFromImageBitmap(bitmapOne);
-    return one;
-}
+//     // Commit rendering to the first canvas
+//     let bitmapOne = offscreen.transferToImageBitmap();
+//     one.transferFromImageBitmap(bitmapOne);
+//     return one;
+// }
 
 
 // Update game loop
 function update(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
-    drawBorder(0, 128, 512, 384);
+    // drawBorder(0, 128, 512, 384);
+    drawBorder(0, 0, pixCanvasPosition.width, pixCanvasPosition.height);
 
     if (mouse.clicked) handleAreaGrid();
     handleBtns();
@@ -541,6 +805,8 @@ function update(){
     drawLabel(`Toggle Grid: G`, 'right', 'Teal',                        canvas.width-42-30*3, 0+labelOffset*4, 18);
     drawLabel(`Clear Canvas: E`, 'right', 'Teal',                       canvas.width-42-30*3, 0+labelOffset*5, 18);
     drawLabel(`Show Brush: M`, 'right', 'Teal',                         canvas.width-42-30*3, 0+labelOffset*6, 18);
+    drawLabel(`Gradient Line: X or Y`, 'right', 'Teal',                 canvas.width-42-30*3, 0+labelOffset*7, 18);
+    drawLabel(`Save Image: S`, 'right', 'Teal',                         canvas.width-42-30*3, 0+labelOffset*8, 18);
 
     // Show fps if settings fpsVisible is true
     if (settings?.fpsVisible){
@@ -565,9 +831,9 @@ function update(){
     if (settings.showBrush) {
         mouseCtx.clearRect(0,0, mouseCanvas.width, mouseCanvas.height);
         mouseCtx.globalAlpha = 1;
-        mouseCtx.lineWidth = 2;
+        mouseCtx.lineWidth = 1;
         mouseCtx.strokeStyle = 'Teal';
-        mouseCtx.strokeRect(mouse.x,mouse.y,mouse.width,mouse.height);
+        mouseCtx.strokeRect(mouse.x,mouse.y,pixMouse.width,pixMouse.height);
     }
 
      // FPS Calculation Debug
@@ -607,15 +873,50 @@ function collision(first,second){
 
 
 // Area grid
-function areaCollision(p, c){
-    const children = [];
-    children.push(c);
-    return children;
-};
+// function areaCollision(p, c){
+//     const children = [];
+//     children.push(c);
+//     return children;
+// };
 
 
-createArea();
-createGrid();
-createBtns()
-update();
+// function arrayTest() {
+//     const sampleArr = [];
+//     const sampleLoc = {x:0, y:0};
+
+//     // Initializes the initArray function
+//     initArray(Pixel, {x:sampleLoc.x, y:sampleLoc.y}, {x:16, y:16}, sampleArr);
+
+//     // Log sample array objects
+//     console.log(sampleArr);
+
+//     // Get colors of array objects
+//     [...sampleArr].forEach(ob => {
+//         console.log(ob.color);
+//     });
+// }
+
+
+// Save Image Function
+function saveImg(){
+    let downloadLink = document.createElement('a');
+    downloadLink.setAttribute('download', 'Pixels.png');
+    let pixCanvas = document.getElementById('pixCanvas');
+    let dataURL = pixCanvas.toDataURL('image/png');
+    let url = dataURL.replace(/^data:image\/png/,'data:application/octet-stream');
+    downloadLink.setAttribute('href', url);
+    downloadLink.click();
+}
+
+
+// First run timer
+setTimeout(e => {
+    createArea();
+    createGrid();
+    createBtns()
+    update();
+    // arrayTest();
+    console.log("Timeout");
+}, 1000);
+
 
