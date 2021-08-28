@@ -85,7 +85,24 @@ function size_canvas(_size){
     saveCanvas.width = canvasSize.w;
     saveCanvas.height = canvasSize.h;
 
-    document.documentElement.style.setProperty('zoom', `${window.innerHeight * .0039}`);
+    // document.documentElement.style.setProperty('zoom', `${window.innerHeight * .0039}`);
+
+    // document.documentElement.style.setProperty('width', `${window.innerHeight}`);
+    // document.documentElement.style.setProperty('height', `${window.innerHeight}`);
+
+    document.documentElement.style.setProperty('width', `100%`);
+    document.documentElement.style.setProperty('height', `100%`);
+
+    const containter = document.createElement('containter');
+    const canvasContainter = document.createElement('canvasContainter');
+
+    containter.style.setProperty('width', `100%`);
+    containter.style.setProperty('height', `100%`);
+
+    canvasContainter.style.setProperty('width', `100%`);
+    canvasContainter.style.setProperty('height', `100%`);
+
+    // canDiv.documentElement.style.setProperty('height', `1000px`);
 
     windowBounds = areaCanvas.getBoundingClientRect();
 
@@ -125,8 +142,10 @@ window.addEventListener('mousemove', (e) => {
 
         reOffset()
 
-        mouse.x = parseInt(e.clientX-offsetX-window.innerWidth*.25);
-        mouse.y = parseInt(e.clientY-offsetY);
+        mouse.x = e.pageX;
+
+        // mouse.x = parseInt(e.clientX-offsetX-window.innerWidth*.25);
+        // mouse.y = parseInt(e.clientY-offsetY);
 
         // mouse.x = e.screenX;
 
@@ -146,7 +165,8 @@ window.addEventListener('mousemove', (e) => {
         mouse.y = undefined;
         // pixMouse.y = undefined;
     } else {
-        mouse.y = e.pageY - window.innerHeight * .0039;
+        // mouse.y = e.pageY - window.innerHeight * .0039;
+        mouse.y = e.pageY;
         // mouse.y = e.pageY - canvasPosition.top - scrollY;
         // mouse.y /= canvasPosition.height; 
         // mouse.y *= canvas.height;
@@ -170,7 +190,7 @@ window.addEventListener('mousemove', (e) => {
     // Can hit performance hard when brush size is > 100
     if (settings.showBrushHover) handleAreaGridHover();
 
-    console.log(`adjusted: ${mouse.x}`);
+    // console.log(`adjusted: ${e.screenX}`);
 });
 
 
