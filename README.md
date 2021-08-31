@@ -1,7 +1,7 @@
 # js-pixel-painter UI-Remake Branch
 A pixel painting app made in Javascript !Unstable And Missing Features!
 
-![image](https://user-images.githubusercontent.com/11281480/131554930-58c05b30-1c44-44b8-87c0-fb1d1445d948.png)
+![image](https://user-images.githubusercontent.com/11281480/131564345-0a6edf94-cba1-4af6-af1e-6e6e6071de87.png)
 
 
 ### How to Play / Install
