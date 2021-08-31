@@ -3,15 +3,24 @@ const pixCtx = pixCanvas.getContext("2d");
 const gridCtx = gridCanvas.getContext("2d");
 const areaCtx = areaCanvas.getContext("2d");
 const uiCtx = uiCanvas.getContext("2d");
+const uiColorCtx = uiColorCanvas.getContext("2d");
 const mouseCtx = mouseCanvas.getContext("2d");
 const saveCtx = saveCanvas.getContext("2d");
+
+let activeCanvas = pixCanvas;
+let zoom = window.outerWidth / window.innerWidth;
+
+// Images
+const pallet_img = new Image();
+pallet_img.src = "/src/images/color_gradient.png";
 
 // Variables
 const canvasSize = {w:256, h:256};
 const areaItems = [];
 const areaSize = 128;
 const areaGap = 3;
-const cellSize = 8;
+const PIX_COUNT = 32;
+const cellSize = 256/PIX_COUNT;
 const cellGap = 3;
 
 const areaGrid = [];
@@ -36,6 +45,19 @@ const mouse = {
     height: .01,
     clicked: false,
     lockDir: {x:false, y:false},
+    mode: "paint",
+}
+
+let mouseTempSize = {width: mouse.width, height: mouse.height};
+let modeKeyToggle = false;
+
+const uiMouse = {
+    x: 10,
+    y: 10,
+    width: .01,
+    height: .01,
+    clicked: false,
+    hoveringBtn: false,
 }
 
 const settings = {
@@ -76,14 +98,29 @@ size_canvas(canvasSize);
 
 // Adjusts canvas and zoom
 function size_canvas(_size){
-    pixCanvas.width = canvasSize.w;
-    pixCanvas.height = canvasSize.h;
+    zoom = window.outerWidth / window.innerWidth;
+
+    // pixCanvas.width = canvasSize.w;
+    // pixCanvas.height = canvasSize.h;
     gridCanvas.width = canvasSize.w;
     gridCanvas.height = canvasSize.h;
     areaCanvas.width = canvasSize.w;
     areaCanvas.height = canvasSize.h;
+
+
+    pixCanvas.width = canvasSize.w;
+    pixCanvas.height = canvasSize.h;
     saveCanvas.width = canvasSize.w;
     saveCanvas.height = canvasSize.h;
+
+    // pixCanvas.style.setProperty('width', `${canvasSize.w / 8}px`);
+    // pixCanvas.style.setProperty('height', `${canvasSize.h / 8}px`);
+
+    // saveCanvas.width = canvasSize.w * 2;
+    // saveCanvas.height = canvasSize.h * 2;
+    // saveCanvas.style.setProperty('width', `${canvasSize.w * 2}px`);
+    // saveCanvas.style.setProperty('height', `${canvasSize.h * 2}px`);
+
 
     // document.documentElement.style.setProperty('zoom', `${window.innerHeight * .0039}`);
 
@@ -102,11 +139,21 @@ function size_canvas(_size){
     canvasContainter.style.setProperty('width', `100%`);
     canvasContainter.style.setProperty('height', `100%`);
 
-    // canDiv.documentElement.style.setProperty('height', `1000px`);
+    uiCanvas.width = 256;
+    uiCanvas.height = 800;
+    uiCanvas.style.setProperty('width', `256px`);
+    uiCanvas.style.setProperty('height', `100%`);
+    uiCanvas.style.left = `${window.innerWidth - uiCanvas.width}px`;
+
+    uiColorCanvas.width = 256;
+    uiColorCanvas.height = 800;
+    uiColorCanvas.style.setProperty('width', `256px`);
+    uiColorCanvas.style.setProperty('height', `100%`);
+    uiColorCanvas.style.left = `${window.innerWidth - uiColorCanvas.width}px`;
 
     windowBounds = areaCanvas.getBoundingClientRect();
 
-    reOffset();
+    // reOffset();
 }
 
 
@@ -118,77 +165,62 @@ window.addEventListener('resize', (e) => {
 
 // variables holding the current canvas offset position
 //    relative to the window
-var offsetX,offsetY;
+// var offsetX,offsetY;
 
 // a function to recalculate the canvas offsets
-function reOffset(){
-    let BB = pixCanvas.getBoundingClientRect();
-    offsetX=BB.left;
-    offsetY=BB.top;        
-}
+// function reOffset(){
+//     let BB = pixCanvas.getBoundingClientRect();
+//     offsetX=BB.left;
+//     offsetY=BB.top;        
+// }
 
 
 window.addEventListener('mousemove', (e) => {
+
+    const MouseX = e.clientX;
+    const MouseY = e.clientY;
+
+    // console.log(window.outerWidth / window.innerWidth);
+    
+    if (MouseX < window.innerWidth){
+        if (e.clientX < window.innerWidth - uiColorCanvas.width){
+            activeCanvas = pixCanvas;
+            uiMouse.x = undefined;
+            uiMouse.y = undefined;
+        }
+        
+        if (e.clientX > window.innerWidth - uiColorCanvas.width){
+            activeCanvas = uiCanvas;
+            uiMouse.x = e.clientX - uiColorCanvas.getBoundingClientRect().left;
+            uiMouse.y = e.clientY - zoom;
+        }
+        // console.log(activeCanvas);
+      }
+
+
     if (mouse.lockDir.x){
         mouse.x = undefined;
-        // pixMouse.x = undefined;
     } else {
-        let rect = pixCanvas.getBoundingClientRect(), root = document.documentElement;
-
-        // mouse.x  = e.clientX - rect.top - root.scrollTop;
-        // mouse.y  = e.clientY - rect.left - root.scrollLeft;
-
-        // use offsetX & offsetY to get the correct mouse position
-
-        reOffset()
-
-        mouse.x = e.pageX;
-
-        // mouse.x = parseInt(e.clientX-offsetX-window.innerWidth*.25);
-        // mouse.y = parseInt(e.clientY-offsetY);
-
-        // mouse.x = e.screenX;
-
-        // Canvas Mouse
-        // mouse.x = e.pageX - canvasPosition.left - scrollX;
-        // mouse.x /= canvasPosition.width; 
-        // mouse.x *= canvas.width;
-        // mouse.x = mouse.x - mouse.width*.5;
-        // pixMouse.x = e.pageX - pixCanvasPosition.left - scrollX;
-        // pixMouse.x /= pixCanvasPosition.width; 
-        // pixMouse.x *= pixCanvas.width;
-        // pixMouse.x = pixMouse.x - pixMouse.width*.5;
+        // let rect = pixCanvas.getBoundingClientRect(), root = document.documentElement;
+        mouse.x = e.clientX / 3 - mouse.width * .5;
     }
     
     
     if (mouse.lockDir.y){
         mouse.y = undefined;
-        // pixMouse.y = undefined;
     } else {
-        // mouse.y = e.pageY - window.innerHeight * .0039;
-        mouse.y = e.pageY;
-        // mouse.y = e.pageY - canvasPosition.top - scrollY;
-        // mouse.y /= canvasPosition.height; 
-        // mouse.y *= canvas.height;
-        // mouse.y = mouse.y - mouse.height*.5;
-        // pixMouse.y = e.pageY - pixCanvasPosition.top - scrollY;
-        // pixMouse.y /= pixCanvasPosition.height; 
-        // pixMouse.y *= pixCanvas.height;
-        // pixMouse.y = pixMouse.y - pixMouse.height*.5;
+        mouse.y = e.clientY / 3 - mouse.height * .5;
     }
     
-    
-    // btnMouse.x = e.pageX - canvasPosition.left - scrollX;
-    // btnMouse.y = e.pageY - canvasPosition.top - scrollY;
-    
-    // pixMouse.x = e.pageX - pixCanvasPosition.left - scrollX;
-    // pixMouse.y = e.pageY - pixCanvasPosition.top - scrollY;
-
-    // pixMouse.y = pixMouse.y - pixMouse.height*.5;
-    // pixMouse.x = pixMouse.x - pixMouse.width*.5;
-
     // Can hit performance hard when brush size is > 100
     if (settings.showBrushHover) handleAreaGridHover();
+
+    if (uiMouse && uiMouse.x && uiMouse.y < uiColorCanvas.width && mouse.clicked) colorSelector();
+
+    if (mouse.mode === "pick"){
+        mouse.width = 0.01;
+        mouse.height = 0.01;
+    }
 
     // console.log(`adjusted: ${e.screenX}`);
 });
@@ -221,6 +253,8 @@ window.addEventListener('mousedown', function(e){
 
 window.addEventListener('mouseup', function(e){
     mouse.clicked = false;
+    // mouse.width = mouseTempSize.width;
+    // mouse.height = mouseTempSize.height;
 });
 
 window.addEventListener('wheel', function(e){
@@ -323,6 +357,18 @@ window.addEventListener('keydown', (e) => {
             mouse.lockDir.y = true;
             break;
 
+        case "Control":
+            if (mouse.mode === "paint") {
+                mouseTempSize = {width: mouse.width, height: mouse.height};
+            }
+            
+            mouse.width = 0.01;
+            mouse.height = 0.01;
+            
+            mouse.mode = "pick";
+            break;
+    
+
     }
 });
 
@@ -333,6 +379,11 @@ addEventListener('keyup', (e) => {
             break;
         case "y":
             mouse.lockDir.y = false;
+            break;
+        case "Control":
+            mouse.width = mouseTempSize.width;
+            mouse.height = mouseTempSize.height;
+            mouse.mode = "paint";
             break;
     }
 });
@@ -454,7 +505,20 @@ class Area {
             areaCtx.strokeRect(this.x, this.y, this.width, this.height);
         }
 
-        if (mouse && collision(this, mouse)){
+        if (mouse && mouse.mode === "pick" && collision(this, mouse)) {
+            const someP = [];
+            this.pixels = this.query(someP);
+
+            for (let i in this.pixels){
+                if (collision(this.pixels[i], mouse) && mouse.clicked){
+                    activeOpacity = this.pixels[i].opacity;
+                    activeColor = this.pixels[i].color;
+                    // colorSelector(); 
+                }
+            }
+        }
+
+        else if (mouse && mouse.mode === "paint" && collision(this, mouse)){
             const someP = [];
             this.pixels = this.query(someP);
             // console.log(this.pixels.length);
@@ -499,104 +563,77 @@ function handleAreaGridHover(){
 
 
 
-class Button {
-    constructor(x, y, width, height, color, opacity){
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-        this.color = `rgb(${color.r}, ${color.g}, ${color.b})`;
-        this.opacity = opacity;
-    }
+// class Button {
+//     constructor(x, y, width, height, color, opacity){
+//         this.x = x;
+//         this.y = y;
+//         this.width = width;
+//         this.height = height;
+//         this.color = `rgb(${color.r}, ${color.g}, ${color.b})`;
+//         this.opacity = opacity;
+//     }
 
-    // Buttons draw function
-    draw(){
-        uiCtx.globalAlpha = this.opacity;
-        uiCtx.fillStyle = this.color;
-        uiCtx.fillRect(this.x, this.y, this.width, this.height);
+//     // Buttons draw function
+//     draw(){
 
-        uiCtx.globalAlpha = 1;
-        uiCtx.strokeStyle = 'Black';
-        uiCtx.lineWidth = 1;
-        uiCtx.strokeRect(this.x, this.y, this.width, this.height);
+//         uiColorCtx.globalAlpha = this.opacity;
+//         uiColorCtx.fillStyle = this.color;
+//         uiColorCtx.fillRect(this.x, this.y, this.width, this.height);
 
-        if (activeColor === this.color && activeOpacity === this.opacity) {
-            uiCtx.globalAlpha = 1;
-            uiCtx.lineWidth = 3;
-            uiCtx.strokeStyle = 'Teal';
-            uiCtx.strokeRect(this.x, this.y, this.width, this.height);
-        }
-    }
+//         // uiCtx.globalAlpha = this.opacity;
+//         // uiCtx.fillStyle = this.color;
+//         // uiCtx.fillRect(this.x, this.y, this.width, this.height);
 
-    // Buttons update function
-    update(){
-        // Select color buttons
-        if (mouse.x && mouse.y && collision(this,mouse)){
-            if (mouse.clicked) {
-                activeOpacity = this.opacity;
-                activeColor = this.color;
-                uiCtx.clearRect(0,0,uiCanvas.width,uiCanvas.height); 
-            }
-        }
-    }
-}
+//         uiCtx.globalAlpha = 1;
+//         uiCtx.strokeStyle = 'Black';
+//         uiCtx.lineWidth = 1;
+//         uiCtx.strokeRect(this.x, this.y, this.width, this.height);
+
+//         if (activeColor === this.color && activeOpacity === this.opacity) {
+//             uiCtx.globalAlpha = 1;
+//             uiCtx.lineWidth = 3;
+//             uiCtx.strokeStyle = 'Teal';
+//             uiCtx.strokeRect(this.x, this.y, this.width, this.height);
+//         }
+//     }
+
+//     // Buttons update function
+//     update(){
+//         // Select color buttons
+//         if (uiMouse.x && uiMouse.y && activeCanvas === uiCanvas && collision(this,uiMouse)){
+//             uiMouse.hoveringBtn = true;
+//             if (mouse.clicked) {
+//                 uiMouse.hoveringBtn = false;
+//                 // activeOpacity = this.opacity;
+//                 // activeColor = this.color;
+//                 // colorSelector(this.color);
+//                 // uiCtx.clearRect(0,0,uiCanvas.width,uiCanvas.height); 
+//             }
+//         }
+//     }
+// }
 
 // Create buttons
-function createBtns(){
-    const btnOffset = 40;
+// function createBtns(){
+//     const btnOffset = 40;
 
-    // White
-    buttons.push(new Button(uiCanvas.width-42,             20, 32, 32, {r:0, g:0, b:0}, 1 ));
-    buttons.push(new Button(uiCanvas.width-42-btnOffset*1, 20, 32, 32, {r:70, g:70, b:70}, 1 ));
-    buttons.push(new Button(uiCanvas.width-42-btnOffset*2, 20, 32, 32, {r:255, g:255, b:255}, 1 ));
+//     // White
+//     buttons.push(new Button(uiCanvas.width-42,             20, 32, 32, {r:0, g:0, b:0}, 1 ));
+//     buttons.push(new Button(uiCanvas.width-42-btnOffset*1, 20, 32, 32, {r:70, g:70, b:70}, 1 ));
+//     buttons.push(new Button(uiCanvas.width-42-btnOffset*2, 20, 32, 32, {r:255, g:255, b:255}, 1 ));
 
-    // Grey
-    buttons.push(new Button(uiCanvas.width-42,             20+btnOffset*1, 32, 32, {r:32, g:32, b:32}, 1 ));
-    buttons.push(new Button(uiCanvas.width-42-btnOffset*1, 20+btnOffset*1, 32, 32, {r:100, g:100, b:100}, 1 ));
-    buttons.push(new Button(uiCanvas.width-42-btnOffset*2, 20+btnOffset*1, 32, 32, {r:140, g:140, b:140}, 1 ));
-
-    // Red
-    buttons.push(new Button(uiCanvas.width-42,             20+btnOffset*2, 32, 32, {r:55, g:0, b:0}, 1 ));
-    buttons.push(new Button(uiCanvas.width-42-btnOffset*1, 20+btnOffset*2, 32, 32, {r:127, g:0, b:0}, 1 ));
-    buttons.push(new Button(uiCanvas.width-42-btnOffset*2, 20+btnOffset*2, 32, 32, {r:255, g:0, b:0}, 1 ));
-
-    // Orange
-    buttons.push(new Button(uiCanvas.width-42,             20+btnOffset*3, 32, 32, {r:148, g:26, b:28}, 1 ));
-    buttons.push(new Button(uiCanvas.width-42-btnOffset*1, 20+btnOffset*3, 32, 32, {r:243, g:114, b:32}, 1 ));
-    buttons.push(new Button(uiCanvas.width-42-btnOffset*2, 20+btnOffset*3, 32, 32, {r:255, g:163, b:26}, 1 ));
-
-    // Yellow
-    buttons.push(new Button(uiCanvas.width-42,             20+btnOffset*4, 32, 32, {r:55, g:55, b:0}, 1 ));
-    buttons.push(new Button(uiCanvas.width-42-btnOffset*1, 20+btnOffset*4, 32, 32, {r:127, g:127, b:0}, 1 ));
-    buttons.push(new Button(uiCanvas.width-42-btnOffset*2, 20+btnOffset*4, 32, 32, {r:255, g:255, b:0}, 1 ));
-    
-    // Green
-    buttons.push(new Button(uiCanvas.width-42,             20+btnOffset*5, 32, 32, {r:0, g:55, b:0}, 1 ));
-    buttons.push(new Button(uiCanvas.width-42-btnOffset*1, 20+btnOffset*5, 32, 32, {r:0, g:127, b:0}, 1 ));
-    buttons.push(new Button(uiCanvas.width-42-btnOffset*2, 20+btnOffset*5, 32, 32, {r:0, g:255, b:0}, 1 ));
-
-    // Teal
-    buttons.push(new Button(uiCanvas.width-42,             20+btnOffset*6, 32, 32, {r:0, g:55, b:55}, 1 ));
-    buttons.push(new Button(uiCanvas.width-42-btnOffset*1, 20+btnOffset*6, 32, 32, {r:0, g:127, b:127}, 1 ));
-    buttons.push(new Button(uiCanvas.width-42-btnOffset*2, 20+btnOffset*6, 32, 32, {r:0, g:255, b:255}, 1 ));
-
-    // Blue
-    buttons.push(new Button(uiCanvas.width-42,             20+btnOffset*7, 32, 32, {r:0, g:0, b:55}, 1 ));
-    buttons.push(new Button(uiCanvas.width-42-btnOffset*1, 20+btnOffset*7, 32, 32, {r:0, g:0, b:127}, 1 ));
-    buttons.push(new Button(uiCanvas.width-42-btnOffset*2, 20+btnOffset*7, 32, 32, {r:0, g:0, b:255}, 1 ));
-
-    // Eraser
-    // buttons.push(new Button(uiCanvas.width-42,             21+btnOffset*8, 32, 32, {r:0, g:0, b:0}, 0 ));
-    // buttons.push(new Button(uiCanvas.width-42-btnOffset*1, 20+btnOffset*8, 32, 32, {r:0, g:0, b:0}, 0 ));
-    buttons.push(new Button(uiCanvas.width-42-btnOffset*2, 20+btnOffset*8, 32, 32, {r:0, g:0, b:0}, 0 ));
-}
+//     // Grey
+//     buttons.push(new Button(uiCanvas.width-42,             20+btnOffset*1, 32, 32, {r:32, g:32, b:32}, 1 ));
+//     buttons.push(new Button(uiCanvas.width-42-btnOffset*1, 20+btnOffset*1, 32, 32, {r:100, g:100, b:100}, 1 ));
+//     buttons.push(new Button(uiCanvas.width-42-btnOffset*2, 20+btnOffset*1, 32, 32, {r:140, g:140, b:140}, 1 ));
+// }
 
 
 // Draw buttons
-function handleBtns() {
-    [...buttons].forEach(ob => ob.draw());
-    [...buttons].forEach(ob => ob.update());
-}
+// function handleBtns() {
+//     [...buttons].forEach(ob => ob.draw());
+//     [...buttons].forEach(ob => ob.update());
+// }
 
 
 function toggleGrid() {
@@ -626,6 +663,14 @@ function drawLineRect(_ctx, _color, x, y, w, h, lw){
 }
 
 
+function drawBoxOutline(_ctx, a, lw, c, x, y, w, h){
+    _ctx.globalAlpha = a;
+    _ctx.strokeStyle = c;
+    _ctx.lineWidth = lw;
+    _ctx.strokeRect(x, y, w, h);
+}
+
+
 function drawRect(_ctx, x, y, w, h){
     _ctx.globalAlpha = 1;
     _ctx.lineWidth = 1;
@@ -634,29 +679,66 @@ function drawRect(_ctx, x, y, w, h){
 }
 
 
+function drawFillRect(_ctx, _color, _a, x, y, w, h){
+    _ctx.clearRect(x, y, w, h);
+    _ctx.globalAlpha = _a;
+    // draw fill rectangle
+    _ctx.fillStyle = _color;
+    _ctx.fillRect(x,y,w,h);
+    _ctx.globalAlpha = 1;
+}
+
+
+function drawLabel(_ctx, _color, _string, x, y, s){
+    _ctx.clearRect(x, y-s, uiCanvas.width, uiCanvas.height*.5);
+    _ctx.globalAlpha = 1;
+    _ctx.fillStyle = _color;
+    _ctx.font = `${s}px ${customFont}`;
+    _ctx.fillText(_string, x, y);
+
+}
+
+
+
+let drawPallet = true;
+
 function draw(){
     pixCtx.clearRect(0,0,mouseCanvas.width, mouseCanvas.height);
+    // uiColorCtx.clearRect(0,0,uiColorCanvas.width, uiColorCanvas.height);
 
-    // temp panel area visualizer
-    // drawLineRect(uiCtx, `rgb(0, 55, 100)`, 0, 0, uiCanvas.width, uiCanvas.height, 3);
+    if (drawPallet) {
+        // uiColorCtx.clearRect(0,0,uiColorCanvas.width, uiColorCanvas.height);
+        uiColorCtx.drawImage(pallet_img, 0,0, uiColorCanvas.width, uiColorCanvas.width);
+        drawPallet = false;
+    }
+    
+    // uiColorCtx.drawImage(pallet_img, 0,0, uiColorCanvas.width, uiColorCanvas.width);
+
+    // Active Color
+    // drawBoxOutline(uiColorCtx, 1, 2, 'Gold', uiColorCanvas.width*.5+10,uiColorCanvas.width+5,64,64);
+    drawFillRect(uiCtx, activeColor, activeOpacity, uiColorCanvas.width*.5+10,uiColorCanvas.width+5,64,64);
+
+    // Active Opacity
+    // drawBoxOutline(uiColorCtx, 1, 2, 'Gold', uiColorCanvas.width*.5-64,uiColorCanvas.width+5,64,64);
+    drawFillRect(uiCtx, `rgb(${activeOpacity}, ${activeOpacity}, ${activeOpacity})`, 1, uiColorCanvas.width*.5-64,uiColorCanvas.width+5,64,64);
+
+    drawLabel(uiColorCtx, `Teal`, `Mode: ${mouse.mode}`, 8, 400, 30);
+
+    drawBoxOutline(gridCtx, 1, 2, 'Green', 0, 0, gridCanvas.width, pixCanvas.height);
+    drawBoxOutline(uiCtx, 1, 2, 'Gold', 0, 0, uiCanvas.width, uiCanvas.height);
 
     // draw events for pixels
     [...pixels].forEach(ob => ob.draw());
 
     if (mouse.clicked) handleAreaGrid();
 
-    handleBtns();
-
-    // if (settings.showBrush) {
-    //     mouseCtx.clearRect(0,0, mouseCanvas.width, mouseCanvas.height);
-    //     mouseCtx.globalAlpha = 1;
-    //     mouseCtx.lineWidth = 1;
-    //     mouseCtx.strokeStyle = 'Teal';
-    //     mouseCtx.strokeRect(mouse.x,mouse.y,mouse.w,mouse.h);
-    // }
+    // handleBtns();
 
     areaCtx.clearRect(0,0, areaCanvas.width, areaCanvas.height);
     drawLineRect(areaCtx, `rgb(0, 55, 100)`, mouse.x, mouse.y, mouse.width, mouse.height, 1);
+
+    // uiCtx.clearRect(0,0, uiColorCanvas.width, uiColorCanvas.width);
+    // drawLineRect(uiCtx, `rgb(0, 55, 100)`, uiMouse.x, uiMouse.y, uiMouse.width, uiMouse.height, 1);
 
     update();
 }
@@ -680,6 +762,19 @@ function collision(first,second){
 };
 
 
+// Color button selector
+function colorSelector(){
+    const detectPixelColor = uiColorCtx.getImageData(uiMouse.x, uiMouse.y, 1, 1);
+    const pc = detectPixelColor.data;
+
+    // if (c === pc){
+    activeOpacity = pc[3];
+    activeColor = `rgb(${pc[0]}, ${pc[1]}, ${pc[2]})`;
+    console.log(`rgba(${pc[0]}, ${pc[1]}, ${pc[2]}, ${pc[3]})`);
+    // }
+}
+
+
 // Save Image Function
 function saveImg(){
     let downloadLink = document.createElement('a');
@@ -701,7 +796,7 @@ function saveImg(){
 setTimeout(e => {
     createArea();
     createGrid();
-    createBtns();
+    // createBtns();
     draw();
     // arrayTest();
     console.log("Timeout");
