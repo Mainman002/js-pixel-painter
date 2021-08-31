@@ -9,6 +9,7 @@ const saveCtx = saveCanvas.getContext("2d");
 
 let activeCanvas = pixCanvas;
 let zoom = window.outerWidth / window.innerWidth;
+let drawPallet = true;
 
 // Images
 const pallet_img = new Image();
@@ -152,6 +153,8 @@ function size_canvas(_size){
     uiColorCanvas.style.left = `${window.innerWidth - uiColorCanvas.width}px`;
 
     windowBounds = areaCanvas.getBoundingClientRect();
+
+    drawPallet = true;
 
     // reOffset();
 }
@@ -699,9 +702,6 @@ function drawLabel(_ctx, _color, _string, x, y, s){
 }
 
 
-
-let drawPallet = true;
-
 function draw(){
     pixCtx.clearRect(0,0,mouseCanvas.width, mouseCanvas.height);
     // uiColorCtx.clearRect(0,0,uiColorCanvas.width, uiColorCanvas.height);
@@ -768,7 +768,7 @@ function colorSelector(){
     const pc = detectPixelColor.data;
 
     // if (c === pc){
-    activeOpacity = pc[3];
+    activeOpacity = pc[3]/100;
     activeColor = `rgb(${pc[0]}, ${pc[1]}, ${pc[2]})`;
     console.log(`rgba(${pc[0]}, ${pc[1]}, ${pc[2]}, ${pc[3]})`);
     // }
