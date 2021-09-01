@@ -3,6 +3,13 @@ A pixel painting app made in Javascript !Unstable And Missing Features!
 
 ![image](https://user-images.githubusercontent.com/11281480/131564345-0a6edf94-cba1-4af6-af1e-6e6e6071de87.png)
 
+### Keyboard Shortcuts
+* S : Save png image
+* E : Clear canvas
+* G : Grid toggle
+* Hold CTRL + Left mouse button : Color select from pixels
+* Hold X + Left mouse button : Horizontal fill
+* Hold Y + Left mouse button : Vertical fill
 
 ### How to Play / Install
 * install npm ( https://docs.npmjs.com/downloading-and-installing-node-js-and-npm )
