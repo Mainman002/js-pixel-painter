@@ -11,29 +11,35 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
 
     <script type="module" src="src/engine.js"></script>
+
+    <!-- <a href="#" class="button" id="btn-download">Download</a> -->
+    <!-- <a href="#" class="button" id="btn-download" download="pixel_canvas.png">Download</a> -->
 </head>
 
 <body>
 
-    <div class="container">
-        <div class="canvasContainer">
+    
+    <!-- <canvas id="uiCanvas"></canvas> -->
+    <div id="mainCanvas">
+        <canvas id="canvas"></canvas>
+        <canvas id="pixCanvas"></canvas>
+        <canvas id="gridCanvas"></canvas>
+        <canvas id="areaCanvas"></canvas>
+        <canvas id="uiCanvas"></canvas>
+        <canvas id="mouseCanvas"></canvas>
+        <!-- <canvas id="notifyCanvas"></canvas> -->
+        <canvas id="saveCanvas" width="256px" height="256px"></canvas>
+    </div>
 
-            <div class="drawArea">
-                <canvas id="pixCanvas"></canvas>
-                <canvas id="gridCanvas"></canvas>
-                <canvas id="areaCanvas"></canvas>
-                <!-- <canvas id="mouseCanvas"></canvas> -->
-            </div>
+    <!-- <div id="sideCanvas">
+        <canvas id="btnCanvas"></canvas>
+    </div> -->
 
-            <!-- <div class="panelArea"> -->
-                <!-- </div> -->
-            </div>
-        </div>
-        
-    <canvas id="uiCanvas"></canvas>
-    <canvas id="uiColorCanvas"></canvas>
-    <canvas id="mouseCanvas"></canvas>
-    <canvas id="saveCanvas"></canvas>
+
+    <img src="" id="mirror" class="canvas__mirror" />
+    
+    <!-- <canvas id="buttonCanvas"></canvas> -->
+    <!-- <canvas id="selectionCanvas"></canvas> -->
     
 </body>
 </html>

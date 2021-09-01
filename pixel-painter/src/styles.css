@@ -1,13 +1,15 @@
-* {
-    margin: 0;
-    padding: 0;
+html{
+    margin:0;
+    padding:0;
     overflow: hidden;
-    box-sizing: border-box;   
-    top: 0;
-    left: 0;
-    /* width: 100%;
-    height: 100%; */
+    background-color: rgb(32, 43, 54);
+}
 
+body{
+    margin:0;
+    padding:0;
+    overflow: hidden;
+    /* image-rendering: optimizeSpeed; */
     image-rendering: -moz-crisp-edges;
     image-rendering: -o-crisp-edges;
     image-rendering: -webkit-crisp-edges;
@@ -19,139 +21,149 @@
     image-rendering: pixelated;
 }
 
-body {
-    background-color: rgb(56, 79, 100);
+/* #mainCanvas{
+    margin:0;
+    padding:0;
+    overflow: hidden;
+    position: absolute;
+    width:'900px';
+    height:'600px';
+    padding-top: 0px;
+    padding-left: 0px;
+}
+
+#sideCanvas{
+    margin:0;
+    padding:0;
+    overflow: hidden;
+    position: absolute;
+    width:'128px';
+    height:'600px';
+    padding-top: 0px;
+    padding-right: 0px;
+} */
+
+
+#canvas{
+    margin:0;
+    padding:0;
+    overflow: hidden;
+    position: absolute;
+    width:'900px';
+    height:'600px';
+    /* background: linear-gradient(-12deg, rgb(26, 46, 100), rgb(0, 93, 121), rgb(103, 172, 179)); */
+    font-family: 'Orbitron', sans-serif;
+    /* border: 1px solid black; */
+    /* background-color: rgb(43, 68, 82); */
+}
+
+#pixCanvas{
+    margin:0;
+    padding:0;
+    overflow: hidden;
+    position: absolute;
+    width:'512px';
+    height:'512px';
+    pointer-events: none;
+    /* border: 2px rgb(32, 43, 54); */
+    /* background: linear-gradient(-12deg, rgb(26, 46, 100), rgb(0, 93, 121), rgb(103, 172, 179)); */
+    font-family: 'Orbitron', sans-serif;
+    /* border: 1px solid black; */
+    /* background-color: rgb(43, 68, 82); */
+}
+
+#gridCanvas{
+    margin:0;
+    padding:0;
+    overflow: hidden;
+    position: absolute;
+    width:'512px';
+    height:'512px';
+    pointer-events: none;
+    font-family: 'Orbitron', sans-serif;
+}
+
+#areaCanvas{
+    margin:0;
+    padding:0;
+    overflow: hidden;
+    position: absolute;
+    width:'512px';
+    height:'512px';
+    pointer-events: none;
+    font-family: 'Orbitron', sans-serif;
+}
+
+#uiCanvas{
+    margin:0;
+    padding:0;
+    overflow: hidden;
+    position: absolute;
+    width:'900px';
+    height:'600px';
+    pointer-events: none;
+    /* background: linear-gradient(-12deg, rgb(26, 46, 100), rgb(0, 93, 121), rgb(103, 172, 179)); */
+    font-family: 'Orbitron', sans-serif;
+    /* border: 1px solid black; */
+    /* background-color: rgb(27, 35, 39); */
+}
+
+#notifyCanvas{
+    margin:0;
+    padding:0;
+    overflow: hidden;
+    position: absolute;
+    pointer-events: none;
+    width:'900px';
+    height:'600px';
+    /* background: linear-gradient(-12deg, rgb(26, 46, 100), rgb(0, 93, 121), rgb(103, 172, 179)); */
+    font-family: 'Orbitron', sans-serif;
+    /* border: 1px solid black; */
+    /* background-color: rgb(27, 35, 39); */
+}
+
+#mouseCanvas{
+    margin:0;
+    padding:0;
+    overflow: hidden;
+    position: absolute;
+    pointer-events: none;
+    width:'900px';
+    height:'600px';
+    z-index: 5;
+    /* background: linear-gradient(-12deg, rgb(26, 46, 100), rgb(0, 93, 121), rgb(103, 172, 179)); */
+    font-family: 'Orbitron', sans-serif;
+    /* border: 1px solid black; */
+    /* background-color: rgb(27, 35, 39); */
+}
+
+img{
+    display: none;
+    image-rendering: -webkit-optimize-contrast;
+}
+
+.canvas__mirror {
+    margin: 0;
+    padding:0;
     top: 0;
     left: 0;
-    width: 100%;
+    overflow: hidden;
     height: 100%;
+    width: 100%; 
+    position: absolute;
+    pointer-events: none;
 }
 
-.container {
-    z-index: 0;
-    top: 0;
-    left: 0;
-    zoom: 3;
-    width: 100%;
-    height: 100%;
-}
-
-.canvasContainer {
-    z-index: 1;
-    display: flex;
-    top: 0;
-    left: 0;
-    /* width: 100%;
-    height: 100%; */
-}
-
-.drawArea {
-    z-index: 3;
-    /* border: 1px solid rgb(0, 110, 255); */
-    position: relative;
-    top: 0;
-    left: 0;
-    /* transform: translate(-50%, 0); */
-    width: 256px;
-    height: 256px;
-    /* zoom: 3; */
-}
-
-.panelArea {
+#btn-download{
+    margin: 0;
+    padding:0;
+    overflow: hidden;
+    padding-top: 0;
+    padding-left: 0;
+    position: absolute;
     z-index: 2;
-    /* border: 1px solid rgb(0, 0, 0); */
-    position: absolute;
-    /* float: right; */
-    /* top: 0;
-    left: 73%; */
-    /* transform: translate(-50%, 0); */
-    width: 256px;
-    height: 256px;
+    height: 100;
+    width: 100; 
+    /* pointer-events: none; */
 }
-
-
-
-
-
-
-
-#pixCanvas {
-    z-index: 1;
-    position: absolute;
-    top: 0;
-    left: 0;
-    /* width: 100%;
-    height: 100%; */
-}
-
-#gridCanvas {
-    z-index: 2;
-    position: absolute;
-    top: 0;
-    left: 0;
-    /* width: 100%;
-    height: 100%; */
-}
-
-#areaCanvas {
-    z-index: 3;
-    position: absolute;
-    top: 0;
-    left: 0;
-    /* width: 100%;
-    height: 100%; */
-}
-
-#uiCanvas {
-    z-index: 4;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 256;
-    height: 400;
-    max-zoom: 100px;
-}
-
-#uiColorCanvas {
-    z-index: 4;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 256;
-    height: 400;
-    max-zoom: 100px;
-}
-
-#mouseCanvas {
-    z-index: 8;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-}
-
-#saveCanvas{
-    z-index: -1;
-    position: relative;
-    top: 0;
-    left: 0;
-}
-
-
-
-/* Class
-.container
-.canvasContainer
-.drawArea
-.panelArea 
-*/
-
-/* ID
-#canvas
-#pixCanvas
-#gridCanvas
-#areaCanvas
-#uiCanvas
-#mouseCanvas */
 
