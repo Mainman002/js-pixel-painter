@@ -3,6 +3,10 @@ A pixel painting app made in Javascript !Unstable And Missing Features!
 
 ![image](https://user-images.githubusercontent.com/11281480/131717382-78073673-e77b-43bf-a11c-3850a43afaca.png)
 
+### Keyboard Shortcuts
+* S : Brush shape toggle ["square", "circle"]
+* F : File export image
+* E : Clear canvas
 
 ### How to Play / Install
 * install npm ( https://docs.npmjs.com/downloading-and-installing-node-js-and-npm )
